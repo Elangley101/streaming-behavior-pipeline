@@ -9,18 +9,20 @@ import asyncio
 import json
 import os
 
-# Try to import optional dependencies
+# Try to import optional dependencies with better error handling
 try:
     from src.snowflake_manager import SnowflakeManager
     SNOWFLAKE_AVAILABLE = True
-except ImportError:
+except (ImportError, ModuleNotFoundError) as e:
+    print(f"Snowflake manager not available: {e}")
     SNOWFLAKE_AVAILABLE = False
     SnowflakeManager = None
 
 try:
     from src.streaming_processor import StreamingProcessor, EventGenerator
     STREAMING_AVAILABLE = True
-except ImportError:
+except (ImportError, ModuleNotFoundError) as e:
+    print(f"Streaming processor not available: {e}")
     STREAMING_AVAILABLE = False
     StreamingProcessor = None
     EventGenerator = None
@@ -28,7 +30,8 @@ except ImportError:
 try:
     from src.utils import PipelineError, setup_logging
     UTILS_AVAILABLE = True
-except ImportError:
+except (ImportError, ModuleNotFoundError) as e:
+    print(f"Utils not available: {e}")
     UTILS_AVAILABLE = False
     PipelineError = Exception
     setup_logging = lambda x: print
@@ -45,7 +48,7 @@ logger = setup_logging("api_service")
 # FastAPI app
 app = FastAPI(
     title="Netflix Analytics API",
-    description="Real-time analytics API for Netflix-style behavioral data",
+    description="Real-time analytics API for Netflix-style behavioral data with ETL pipeline, Kafka streaming, and Snowflake integration",
     version="1.0.0"
 )
 
@@ -101,65 +104,89 @@ class HealthResponse(BaseModel):
     status: str
     timestamp: datetime
     services: Dict[str, str]
+    environment: str
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize services on startup."""
+    """Initialize services on startup with proper error handling."""
     global snowflake_manager, streaming_processor, event_generator
     
-    # Only initialize if dependencies are available and environment is configured
+    logger.info("Starting Netflix Analytics API...")
+    
+    # Initialize Snowflake if available and configured
     if SNOWFLAKE_AVAILABLE and os.getenv("SNOWFLAKE_ACCOUNT"):
         try:
             snowflake_manager = SnowflakeManager()
-            logger.info("Snowflake manager initialized")
+            logger.info("✅ Snowflake manager initialized successfully")
         except Exception as e:
-            logger.warning(f"Could not initialize Snowflake: {str(e)}")
+            logger.warning(f"⚠️ Could not initialize Snowflake: {str(e)}")
+            snowflake_manager = None
     else:
-        logger.info("Snowflake not available or not configured")
+        logger.info("ℹ️ Snowflake not available or not configured")
     
+    # Initialize streaming processor if available and configured
     if STREAMING_AVAILABLE and os.getenv("KAFKA_BOOTSTRAP_SERVERS"):
         try:
             streaming_processor = StreamingProcessor()
-            logger.info("Streaming processor initialized")
+            logger.info("✅ Streaming processor initialized successfully")
         except Exception as e:
-            logger.warning(f"Could not initialize streaming processor: {str(e)}")
+            logger.warning(f"⚠️ Could not initialize streaming processor: {str(e)}")
+            streaming_processor = None
     else:
-        logger.info("Streaming processor not available or not configured")
+        logger.info("ℹ️ Streaming processor not available or not configured")
     
+    # Initialize event generator if available and configured
     if STREAMING_AVAILABLE and os.getenv("KAFKA_BOOTSTRAP_SERVERS"):
         try:
             event_generator = EventGenerator()
-            logger.info("Event generator initialized")
+            logger.info("✅ Event generator initialized successfully")
         except Exception as e:
-            logger.warning(f"Could not initialize event generator: {str(e)}")
+            logger.warning(f"⚠️ Could not initialize event generator: {str(e)}")
+            event_generator = None
     else:
-        logger.info("Event generator not available or not configured")
+        logger.info("ℹ️ Event generator not available or not configured")
+    
+    logger.info("🎬 Netflix Analytics API startup complete!")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown."""
     global snowflake_manager, streaming_processor, event_generator
     
+    logger.info("Shutting down Netflix Analytics API...")
+    
     if streaming_processor and hasattr(streaming_processor, 'stop_streaming'):
-        streaming_processor.stop_streaming()
+        try:
+            streaming_processor.stop_streaming()
+            logger.info("✅ Streaming processor stopped")
+        except Exception as e:
+            logger.error(f"❌ Error stopping streaming processor: {str(e)}")
     
     if snowflake_manager and hasattr(snowflake_manager, 'close'):
-        snowflake_manager.close()
+        try:
+            snowflake_manager.close()
+            logger.info("✅ Snowflake connection closed")
+        except Exception as e:
+            logger.error(f"❌ Error closing Snowflake connection: {str(e)}")
 
 @app.get("/", response_model=Dict[str, str])
 async def root():
-    """Root endpoint."""
+    """Root endpoint with environment information."""
     return {
         "message": "Netflix Analytics API",
         "version": "1.0.0",
         "status": "running",
-        "environment": "railway" if os.getenv("RAILWAY_ENVIRONMENT") else "local"
+        "environment": "railway" if os.getenv("RAILWAY_ENVIRONMENT") else "local",
+        "description": "Real-time analytics API with ETL pipeline, Kafka streaming, and Snowflake integration"
     }
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Health check endpoint."""
+    """Comprehensive health check endpoint."""
     services = {}
+    
+    # Check API service
+    services["api"] = "healthy"
     
     # Check Snowflake
     if snowflake_manager:
@@ -174,29 +201,43 @@ async def health_check():
     
     # Check streaming processor
     if streaming_processor:
-        services["streaming"] = "healthy"
+        try:
+            # Check if streaming processor is responsive
+            services["streaming"] = "healthy"
+        except Exception as e:
+            services["streaming"] = f"unhealthy: {str(e)}"
     else:
         services["streaming"] = "not_configured"
     
-    # API is always healthy if it's responding
-    services["api"] = "healthy"
+    # Determine overall status
+    healthy_services = sum(1 for status in services.values() if "healthy" in status)
+    total_services = len(services)
+    
+    if healthy_services == total_services:
+        status = "healthy"
+    elif healthy_services > 0:
+        status = "degraded"
+    else:
+        status = "unhealthy"
     
     return HealthResponse(
-        status="healthy" if services["api"] == "healthy" else "degraded",
+        status=status,
         timestamp=datetime.now(),
-        services=services
+        services=services,
+        environment="railway" if os.getenv("RAILWAY_ENVIRONMENT") else "local"
     )
 
 @app.post("/events", response_model=Dict[str, str])
 async def create_watch_event(event: WatchEventRequest):
-    """Create a new watch event."""
+    """Create a new watch event with streaming integration."""
     global streaming_processor
     
     if not streaming_processor:
-        # Return success even without streaming processor for demo purposes
+        # Return success with mock mode indicator
         return {
             "message": "Event received (mock mode - streaming not configured)", 
-            "event_id": f"mock_{datetime.now().timestamp()}"
+            "event_id": f"mock_{datetime.now().timestamp()}",
+            "mode": "mock"
         }
     
     try:
@@ -204,7 +245,11 @@ async def create_watch_event(event: WatchEventRequest):
         event_dict = event.dict()
         streaming_processor.send_event("watch_events", event_dict, key=event.user_id)
         
-        return {"message": "Event created successfully", "event_id": event_dict.get("event_id")}
+        return {
+            "message": "Event created successfully", 
+            "event_id": event_dict.get("event_id"),
+            "mode": "streaming"
+        }
     
     except Exception as e:
         logger.error(f"Error creating event: {str(e)}")
@@ -216,12 +261,12 @@ async def get_analytics(
     user_id: Optional[str] = None,
     show_name: Optional[str] = None
 ):
-    """Get analytics data."""
+    """Get analytics data with Snowflake integration."""
     global snowflake_manager
     
     if not snowflake_manager:
         # Return mock data when Snowflake is not available
-        logger.info("Returning mock analytics data")
+        logger.info("Returning mock analytics data (Snowflake not configured)")
         return AnalyticsResponse(**MOCK_ANALYTICS)
     
     try:
@@ -300,7 +345,7 @@ async def get_analytics(
 
 @app.get("/users/{user_id}/analytics")
 async def get_user_analytics(user_id: str, days: int = 30):
-    """Get analytics for a specific user."""
+    """Get analytics for a specific user with Snowflake integration."""
     global snowflake_manager
     
     if not snowflake_manager:
@@ -315,7 +360,8 @@ async def get_user_analytics(user_id: str, days: int = 30):
             "favorite_shows": [
                 {"show_name": "Stranger Things", "sessions": 12, "total_hours": 18.0, "avg_engagement": 0.88},
                 {"show_name": "The Crown", "sessions": 8, "total_hours": 12.0, "avg_engagement": 0.85}
-            ]
+            ],
+            "mode": "mock"
         }
     
     try:
@@ -355,6 +401,7 @@ async def get_user_analytics(user_id: str, days: int = 30):
         
         user_data = result.iloc[0].to_dict()
         user_data["favorite_shows"] = shows.to_dict('records')
+        user_data["mode"] = "snowflake"
         
         return user_data
     
@@ -364,7 +411,7 @@ async def get_user_analytics(user_id: str, days: int = 30):
 
 @app.get("/shows/{show_name}/analytics")
 async def get_show_analytics(show_name: str, days: int = 30):
-    """Get analytics for a specific show."""
+    """Get analytics for a specific show with Snowflake integration."""
     global snowflake_manager
     
     if not snowflake_manager:
@@ -380,7 +427,8 @@ async def get_show_analytics(show_name: str, days: int = 30):
             "top_viewers": [
                 {"user_id": "user_123", "sessions": 8, "total_hours": 12.0, "avg_engagement": 0.92},
                 {"user_id": "user_456", "sessions": 6, "total_hours": 9.0, "avg_engagement": 0.88}
-            ]
+            ],
+            "mode": "mock"
         }
     
     try:
@@ -421,6 +469,7 @@ async def get_show_analytics(show_name: str, days: int = 30):
         
         show_data = result.iloc[0].to_dict()
         show_data["top_viewers"] = viewers.to_dict('records')
+        show_data["mode"] = "snowflake"
         
         return show_data
     
@@ -434,13 +483,15 @@ async def generate_test_events(
     num_events: int = 100,
     duration_minutes: int = 10
 ):
-    """Generate test events in the background."""
+    """Generate test events in the background with streaming integration."""
     global event_generator
     
     if not event_generator:
         return {
-            "message": "Event generator not available (mock mode)",
-            "status": "mock_mode"
+            "message": f"Event generator not available (mock mode)",
+            "status": "mock_mode",
+            "requested_events": num_events,
+            "duration_minutes": duration_minutes
         }
     
     def generate_events():
@@ -453,7 +504,8 @@ async def generate_test_events(
     
     return {
         "message": f"Generating {num_events} events over {duration_minutes} minutes",
-        "status": "started"
+        "status": "started",
+        "mode": "streaming"
     }
 
 @app.get("/streaming/status")
@@ -464,7 +516,8 @@ async def get_streaming_status():
     if not streaming_processor:
         return {
             "status": "not_configured",
-            "message": "Streaming processor not available in this environment"
+            "message": "Streaming processor not available in this environment",
+            "kafka_configured": bool(os.getenv("KAFKA_BOOTSTRAP_SERVERS"))
         }
     
     return {
@@ -472,7 +525,8 @@ async def get_streaming_status():
         "input_topic": streaming_processor.input_topic,
         "output_topic": streaming_processor.output_topic,
         "batch_size": streaming_processor.batch_size,
-        "batch_timeout": streaming_processor.batch_timeout
+        "batch_timeout": streaming_processor.batch_timeout,
+        "kafka_configured": bool(os.getenv("KAFKA_BOOTSTRAP_SERVERS"))
     }
 
 @app.post("/streaming/start")
