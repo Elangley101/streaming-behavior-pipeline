@@ -1,3 +1,5 @@
+import sys
+import traceback
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -8,7 +10,6 @@ from datetime import datetime, timedelta
 import asyncio
 import json
 import os
-import sys
 
 # Simple logging function that always works
 def setup_logging(name):
@@ -18,37 +19,54 @@ def setup_logging(name):
 
 logger = setup_logging("api_service")
 
-# Try to import optional dependencies with better error handling
+# Initialize flags
 SNOWFLAKE_AVAILABLE = False
 STREAMING_AVAILABLE = False
 UTILS_AVAILABLE = False
 
+# Initialize global variables
+SnowflakeManager = None
+StreamingProcessor = None
+EventGenerator = None
+PipelineError = Exception
+
+logger.info("🚀 Starting Netflix Analytics API initialization...")
+
+# Try to import optional dependencies with comprehensive error handling
 try:
+    logger.info("📦 Attempting to import Snowflake manager...")
     from src.snowflake_manager import SnowflakeManager
     SNOWFLAKE_AVAILABLE = True
-    logger("✅ Snowflake manager imported successfully")
+    logger.info("✅ Snowflake manager imported successfully")
 except Exception as e:
-    logger(f"⚠️ Snowflake manager not available: {e}")
+    logger.warning(f"⚠️ Snowflake manager not available: {e}")
+    logger.debug(f"Snowflake import traceback: {traceback.format_exc()}")
     SnowflakeManager = None
 
 try:
+    logger.info("📦 Attempting to import streaming processor...")
     from src.streaming_processor import StreamingProcessor, EventGenerator
     STREAMING_AVAILABLE = True
-    logger("✅ Streaming processor imported successfully")
+    logger.info("✅ Streaming processor imported successfully")
 except Exception as e:
-    logger(f"⚠️ Streaming processor not available: {e}")
+    logger.warning(f"⚠️ Streaming processor not available: {e}")
+    logger.debug(f"Streaming import traceback: {traceback.format_exc()}")
     StreamingProcessor = None
     EventGenerator = None
 
 try:
+    logger.info("📦 Attempting to import utils...")
     from src.utils import PipelineError, setup_logging as utils_setup_logging
     UTILS_AVAILABLE = True
-    logger("✅ Utils imported successfully")
+    logger.info("✅ Utils imported successfully")
     # Use the proper logging if available
     logger = utils_setup_logging("api_service")
 except Exception as e:
-    logger(f"⚠️ Utils not available: {e}")
+    logger.warning(f"⚠️ Utils not available: {e}")
+    logger.debug(f"Utils import traceback: {traceback.format_exc()}")
     PipelineError = Exception
+
+logger.info("🎬 Dependencies import complete!")
 
 # FastAPI app
 app = FastAPI(
@@ -116,15 +134,17 @@ async def startup_event():
     """Initialize services on startup with proper error handling."""
     global snowflake_manager, streaming_processor, event_generator
     
-    logger.info("🎬 Starting Netflix Analytics API...")
+    logger.info("🎬 Starting Netflix Analytics API services...")
     
     # Initialize Snowflake if available and configured
     if SNOWFLAKE_AVAILABLE and os.getenv("SNOWFLAKE_ACCOUNT"):
         try:
+            logger.info("🔗 Initializing Snowflake connection...")
             snowflake_manager = SnowflakeManager()
             logger.info("✅ Snowflake manager initialized successfully")
         except Exception as e:
             logger.warning(f"⚠️ Could not initialize Snowflake: {str(e)}")
+            logger.debug(f"Snowflake init traceback: {traceback.format_exc()}")
             snowflake_manager = None
     else:
         logger.info("ℹ️ Snowflake not available or not configured")
@@ -132,10 +152,12 @@ async def startup_event():
     # Initialize streaming processor if available and configured
     if STREAMING_AVAILABLE and os.getenv("KAFKA_BOOTSTRAP_SERVERS"):
         try:
+            logger.info("🔗 Initializing streaming processor...")
             streaming_processor = StreamingProcessor()
             logger.info("✅ Streaming processor initialized successfully")
         except Exception as e:
             logger.warning(f"⚠️ Could not initialize streaming processor: {str(e)}")
+            logger.debug(f"Streaming init traceback: {traceback.format_exc()}")
             streaming_processor = None
     else:
         logger.info("ℹ️ Streaming processor not available or not configured")
@@ -143,10 +165,12 @@ async def startup_event():
     # Initialize event generator if available and configured
     if STREAMING_AVAILABLE and os.getenv("KAFKA_BOOTSTRAP_SERVERS"):
         try:
+            logger.info("🔗 Initializing event generator...")
             event_generator = EventGenerator()
             logger.info("✅ Event generator initialized successfully")
         except Exception as e:
             logger.warning(f"⚠️ Could not initialize event generator: {str(e)}")
+            logger.debug(f"Event generator init traceback: {traceback.format_exc()}")
             event_generator = None
     else:
         logger.info("ℹ️ Event generator not available or not configured")
@@ -566,4 +590,5 @@ async def stop_streaming():
     return {"message": "Streaming processor stopped"}
 
 if __name__ == "__main__":
+    logger.info("🚀 Starting uvicorn server...")
     uvicorn.run(app, host="0.0.0.0", port=8000) 
