@@ -8,42 +8,47 @@ from datetime import datetime, timedelta
 import asyncio
 import json
 import os
+import sys
+
+# Simple logging function that always works
+def setup_logging(name):
+    def log(message):
+        print(f"[{name}] {message}")
+    return log
+
+logger = setup_logging("api_service")
 
 # Try to import optional dependencies with better error handling
+SNOWFLAKE_AVAILABLE = False
+STREAMING_AVAILABLE = False
+UTILS_AVAILABLE = False
+
 try:
     from src.snowflake_manager import SnowflakeManager
     SNOWFLAKE_AVAILABLE = True
-except (ImportError, ModuleNotFoundError) as e:
-    print(f"Snowflake manager not available: {e}")
-    SNOWFLAKE_AVAILABLE = False
+    logger("✅ Snowflake manager imported successfully")
+except Exception as e:
+    logger(f"⚠️ Snowflake manager not available: {e}")
     SnowflakeManager = None
 
 try:
     from src.streaming_processor import StreamingProcessor, EventGenerator
     STREAMING_AVAILABLE = True
-except (ImportError, ModuleNotFoundError) as e:
-    print(f"Streaming processor not available: {e}")
-    STREAMING_AVAILABLE = False
+    logger("✅ Streaming processor imported successfully")
+except Exception as e:
+    logger(f"⚠️ Streaming processor not available: {e}")
     StreamingProcessor = None
     EventGenerator = None
 
 try:
-    from src.utils import PipelineError, setup_logging
+    from src.utils import PipelineError, setup_logging as utils_setup_logging
     UTILS_AVAILABLE = True
-except (ImportError, ModuleNotFoundError) as e:
-    print(f"Utils not available: {e}")
-    UTILS_AVAILABLE = False
+    logger("✅ Utils imported successfully")
+    # Use the proper logging if available
+    logger = utils_setup_logging("api_service")
+except Exception as e:
+    logger(f"⚠️ Utils not available: {e}")
     PipelineError = Exception
-    setup_logging = lambda x: print
-
-# Simple logging if utils not available
-if not UTILS_AVAILABLE:
-    def setup_logging(name):
-        def log(message):
-            print(f"[{name}] {message}")
-        return log
-
-logger = setup_logging("api_service")
 
 # FastAPI app
 app = FastAPI(
@@ -111,7 +116,7 @@ async def startup_event():
     """Initialize services on startup with proper error handling."""
     global snowflake_manager, streaming_processor, event_generator
     
-    logger.info("Starting Netflix Analytics API...")
+    logger.info("🎬 Starting Netflix Analytics API...")
     
     # Initialize Snowflake if available and configured
     if SNOWFLAKE_AVAILABLE and os.getenv("SNOWFLAKE_ACCOUNT"):
