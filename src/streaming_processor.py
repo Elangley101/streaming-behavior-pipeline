@@ -1,18 +1,19 @@
 import json
 import time
-from datetime import datetime
-from typing import Dict, Any, Optional, Callable
-from dataclasses import dataclass, asdict
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Generator
 import uuid
+import random
+import threading
+from queue import Queue
+import logging
 
-from kafka import KafkaProducer, KafkaConsumer
-from kafka.errors import KafkaError
 import pandas as pd
-from pydantic import BaseModel, Field
-
-from src.transform import DataTransformer
-from src.snowflake_manager import SnowflakeManager
-from src.utils import PipelineError, handle_pipeline_error, setup_logging
+import numpy as np
+from kafka import KafkaProducer, KafkaConsumer
+from transform import DataTransformer
+from snowflake_manager import SnowflakeManager
+from utils import PipelineError, handle_pipeline_error, setup_logging
 
 logger = setup_logging("streaming_processor")
 
@@ -319,8 +320,6 @@ class StreamingProcessor:
         Args:
             num_events: Number of events to generate
         """
-        import random
-        
         shows = ["Stranger Things", "The Crown", "Breaking Bad", "Friends", "The Office"]
         users = [f"user_{i:04d}" for i in range(1, 101)]
         

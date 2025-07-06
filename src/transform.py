@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 from config.config import PIPELINE_CONFIG
-from src.utils import PipelineError, handle_pipeline_error, setup_logging
+from utils import PipelineError, handle_pipeline_error, setup_logging
 
 logger = setup_logging("transform")
 
@@ -90,10 +90,10 @@ class DataTransformer:
         df["is_binge_session"] = df["watch_duration_minutes"] >= self.binge_threshold
         
         # Calculate user engagement metrics
-        user_stats = df.groupby("user_id").agg({
+        user_stats = df.groupby("user_id", as_index=False).agg({
             "watch_duration_minutes": ["sum", "mean", "count"],
             "is_binge_session": "sum"
-        }).reset_index()
+        })
         
         user_stats.columns = [
             "user_id",

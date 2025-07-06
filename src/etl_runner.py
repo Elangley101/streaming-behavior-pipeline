@@ -127,21 +127,21 @@ class ETLPipeline:
             self.snowflake_manager.load_dataframe(watch_facts, "watch_facts")
             
             # Prepare and load user dimension
-            user_dim = df.groupby("user_id").agg({
+            user_dim = df.groupby("user_id", as_index=False).agg({
                 "total_watch_time": "sum",
                 "avg_watch_time": "mean",
                 "total_sessions": "count",
                 "binge_sessions": "sum",
                 "is_binge_watcher": "first"
-            }).reset_index()
+            })
             self.snowflake_manager.load_dataframe(user_dim, "user_dim")
             
             # Prepare and load show dimension
-            show_dim = df.groupby("show_name").agg({
+            show_dim = df.groupby("show_name", as_index=False).agg({
                 "total_watch_time": "sum",
                 "total_views": "count",
                 "avg_completion_rate": "mean"
-            }).reset_index()
+            })
             show_dim["show_id"] = show_dim["show_name"].apply(lambda x: str(hash(x)))
             self.snowflake_manager.load_dataframe(show_dim, "show_dim")
             

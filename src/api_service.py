@@ -1,15 +1,28 @@
-import sys
-import traceback
-from fastapi import FastAPI, HTTPException, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
-import uvicorn
-from datetime import datetime, timedelta
-import asyncio
-import json
 import os
+import json
+import logging
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any
+from pathlib import Path
+import asyncio
+import threading
+import time
+from contextlib import asynccontextmanager
+
+# FastAPI imports
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
+import uvicorn
+from pydantic import BaseModel, Field, validator
+import pandas as pd
+import numpy as np
+
+# Internal imports
+from snowflake_manager import SnowflakeManager
+from streaming_processor import StreamingProcessor, EventGenerator
+from utils import PipelineError, setup_logging as utils_setup_logging
 
 # Simple logging function that always works
 def setup_logging(name):
@@ -42,7 +55,7 @@ logger.info("🚀 Starting Netflix Analytics API initialization...")
 # Try to import optional dependencies with comprehensive error handling
 try:
     logger.info("📦 Attempting to import Snowflake manager...")
-    from src.snowflake_manager import SnowflakeManager
+    from snowflake_manager import SnowflakeManager
     SNOWFLAKE_AVAILABLE = True
     logger.info("✅ Snowflake manager imported successfully")
 except Exception as e:
@@ -52,7 +65,7 @@ except Exception as e:
 
 try:
     logger.info("📦 Attempting to import streaming processor...")
-    from src.streaming_processor import StreamingProcessor, EventGenerator
+    from streaming_processor import StreamingProcessor, EventGenerator
     STREAMING_AVAILABLE = True
     logger.info("✅ Streaming processor imported successfully")
 except Exception as e:
@@ -63,7 +76,7 @@ except Exception as e:
 
 try:
     logger.info("📦 Attempting to import utils...")
-    from src.utils import PipelineError, setup_logging as utils_setup_logging
+    from utils import PipelineError, setup_logging as utils_setup_logging
     UTILS_AVAILABLE = True
     logger.info("✅ Utils imported successfully")
     # Keep the original logger to avoid reassignment issues

@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 import numpy as np
 from pathlib import Path
 
-from src.snowflake_manager import SnowflakeManager
-from src.utils import PipelineError
+from snowflake_manager import SnowflakeManager
+from utils import PipelineError
 from config.config import PIPELINE_CONFIG
 
 # Page configuration
