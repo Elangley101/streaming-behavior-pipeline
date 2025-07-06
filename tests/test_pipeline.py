@@ -56,8 +56,10 @@ def test_load(sample_data, output_path):
     transformed_df = transformer.transform(df)
     loader.save_to_parquet(transformed_df)
     
+    # Verify the file was created
     assert os.path.exists(output_path)
-
+    
+    # Verify we can read it back
     loaded_df = loader.read_parquet()
     assert isinstance(loaded_df, pd.DataFrame)
     assert len(loaded_df) == len(transformed_df)
@@ -67,13 +69,16 @@ def test_batch_processing(sample_data, output_path):
     extractor = DataExtractor(sample_data)
     transformer = DataTransformer()
     loader = DataLoader(output_path)
-
+    
+    # Process in batches
     for batch in extractor.read_csv_in_batches():
         transformed_batch = transformer.transform_batch(batch)
         loader.save_batch_to_parquet(transformed_batch)
-
+    
+    # Verify the file was created
     assert os.path.exists(output_path)
     
+    # Verify we can read it back
     loaded_df = loader.read_parquet()
     assert isinstance(loaded_df, pd.DataFrame)
     assert len(loaded_df) > 0
@@ -83,12 +88,12 @@ def test_data_validation(sample_data):
     extractor = DataExtractor(sample_data)
     df = extractor.read_csv()
     
-    # Check data types (pandas object dtype is equivalent to string for object columns)
-    assert df["user_id"].dtype == "object" or df["user_id"].dtype == "string"
-    assert df["show_name"].dtype == "object" or df["show_name"].dtype == "string"
+    # Verify data types
+    assert df["user_id"].dtype == "string"
+    assert df["show_name"].dtype == "string"
     assert pd.api.types.is_numeric_dtype(df["watch_duration_minutes"])
-    # Check if watch_date can be parsed as datetime (it's stored as object but contains datetime strings)
-    assert df["watch_date"].dtype == "object"  # Raw CSV data is loaded as object
+    assert pd.api.types.is_datetime64_any_dtype(df["watch_date"])
     
+    # Verify value ranges
     assert df["watch_duration_minutes"].min() >= 0
-    assert df["watch_duration_minutes"].max() <= 1440  
+    assert df["watch_duration_minutes"].max() <= 1440  # 24 hours 

@@ -11,10 +11,12 @@ import asyncio
 import json
 import os
 
+# Simple logging function that always works
 def setup_logging(name):
     def log(message, level="INFO"):
         print(f"[{name}] {level}: {message}")
     
+    # Add methods to match standard logging interface
     log.info = lambda msg: log(msg, "INFO")
     log.warning = lambda msg: log(msg, "WARNING")
     log.error = lambda msg: log(msg, "ERROR")
@@ -24,50 +26,62 @@ def setup_logging(name):
 
 logger = setup_logging("api_service")
 
+# Initialize flags
 SNOWFLAKE_AVAILABLE = False
 STREAMING_AVAILABLE = False
 UTILS_AVAILABLE = False
 
+# Initialize global variables
 SnowflakeManager = None
 StreamingProcessor = None
 EventGenerator = None
 PipelineError = Exception
 
-logger.info("Starting Streamlytics API initialization...")
+logger.info("🚀 Starting Netflix Analytics API initialization...")
 
+# Try to import optional dependencies with comprehensive error handling
 try:
+    logger.info("📦 Attempting to import Snowflake manager...")
     from src.snowflake_manager import SnowflakeManager
     SNOWFLAKE_AVAILABLE = True
-    logger.info("Snowflake manager imported successfully")
+    logger.info("✅ Snowflake manager imported successfully")
 except Exception as e:
-    logger.warning(f"Snowflake manager not available: {e}")
+    logger.warning(f"⚠️ Snowflake manager not available: {e}")
+    logger.debug(f"Snowflake import traceback: {traceback.format_exc()}")
     SnowflakeManager = None
 
 try:
+    logger.info("📦 Attempting to import streaming processor...")
     from src.streaming_processor import StreamingProcessor, EventGenerator
     STREAMING_AVAILABLE = True
-    logger.info("Streaming processor imported successfully")
+    logger.info("✅ Streaming processor imported successfully")
 except Exception as e:
-    logger.warning(f"Streaming processor not available: {e}")
+    logger.warning(f"⚠️ Streaming processor not available: {e}")
+    logger.debug(f"Streaming import traceback: {traceback.format_exc()}")
     StreamingProcessor = None
     EventGenerator = None
 
 try:
+    logger.info("📦 Attempting to import utils...")
     from src.utils import PipelineError, setup_logging as utils_setup_logging
     UTILS_AVAILABLE = True
-    logger.info("Utils imported successfully")
+    logger.info("✅ Utils imported successfully")
+    # Keep the original logger to avoid reassignment issues
 except Exception as e:
-    logger.warning(f"Utils not available: {e}")
+    logger.warning(f"⚠️ Utils not available: {e}")
+    logger.debug(f"Utils import traceback: {traceback.format_exc()}")
     PipelineError = Exception
 
-logger.info("Dependencies import complete!")
+logger.info("🎬 Dependencies import complete!")
 
+# FastAPI app
 app = FastAPI(
-    title="Streamlytics API",
-    description="Real-time analytics API for streaming media behavioral data with ETL pipeline, Kafka streaming, and Snowflake integration",
+    title="Netflix Analytics API",
+    description="Real-time analytics API for Netflix-style behavioral data with ETL pipeline, Kafka streaming, and Snowflake integration",
     version="1.0.0"
 )
 
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -76,11 +90,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Global variables
 snowflake_manager = None
 streaming_processor = None
 event_generator = None
 
-# Mock data for demo purposes
+# Mock data for when external services are not available
 MOCK_ANALYTICS = {
     "total_sessions": 1250,
     "total_hours": 1875.5,
@@ -98,6 +113,7 @@ MOCK_ANALYTICS = {
     ]
 }
 
+# Pydantic models
 class WatchEventRequest(BaseModel):
     user_id: str
     show_name: str
@@ -121,54 +137,65 @@ class HealthResponse(BaseModel):
 
 @app.on_event("startup")
 async def startup_event():
+    """Initialize services on startup with proper error handling."""
     global snowflake_manager, streaming_processor, event_generator
     
-    logger.info("Starting Streamlytics API services...")
+    logger.info("🎬 Starting Netflix Analytics API services...")
     
+    # Initialize Snowflake if available and configured
     if SNOWFLAKE_AVAILABLE and os.getenv("SNOWFLAKE_ACCOUNT"):
         try:
+            logger.info("🔗 Initializing Snowflake connection...")
             snowflake_manager = SnowflakeManager()
-            logger.info("Snowflake manager initialized successfully")
+            logger.info("✅ Snowflake manager initialized successfully")
         except Exception as e:
-            logger.warning(f"Could not initialize Snowflake: {str(e)}")
+            logger.warning(f"⚠️ Could not initialize Snowflake: {str(e)}")
+            logger.debug(f"Snowflake init traceback: {traceback.format_exc()}")
             snowflake_manager = None
     else:
-        logger.info("Snowflake not available or not configured")
+        logger.info("ℹ️ Snowflake not available or not configured")
     
+    # Initialize streaming processor if available and configured
     if STREAMING_AVAILABLE and os.getenv("KAFKA_BOOTSTRAP_SERVERS"):
         try:
+            logger.info("🔗 Initializing streaming processor...")
             streaming_processor = StreamingProcessor()
-            logger.info("Streaming processor initialized successfully")
+            logger.info("✅ Streaming processor initialized successfully")
         except Exception as e:
-            logger.warning(f"Could not initialize streaming processor: {str(e)}")
+            logger.warning(f"⚠️ Could not initialize streaming processor: {str(e)}")
+            logger.debug(f"Streaming init traceback: {traceback.format_exc()}")
             streaming_processor = None
     else:
-        logger.info("Streaming processor not available or not configured")
+        logger.info("ℹ️ Streaming processor not available or not configured")
     
+    # Initialize event generator if available and configured
     if STREAMING_AVAILABLE and os.getenv("KAFKA_BOOTSTRAP_SERVERS"):
         try:
+            logger.info("🔗 Initializing event generator...")
             event_generator = EventGenerator()
-            logger.info("Event generator initialized successfully")
+            logger.info("✅ Event generator initialized successfully")
         except Exception as e:
-            logger.warning(f"Could not initialize event generator: {str(e)}")
+            logger.warning(f"⚠️ Could not initialize event generator: {str(e)}")
+            logger.debug(f"Event generator init traceback: {traceback.format_exc()}")
             event_generator = None
     else:
-        logger.info("Event generator not available or not configured")
+        logger.info("ℹ️ Event generator not available or not configured")
     
-    logger.info("Streamlytics API startup complete!")
+    logger.info("🎬 Netflix Analytics API startup complete!")
 
 @app.on_event("shutdown")
 async def shutdown_event():
+    """Cleanup on shutdown."""
     global snowflake_manager, streaming_processor, event_generator
     
-    logger.info("Shutting down Streamlytics API...")
+    logger.info("Shutting down Netflix Analytics API...")
     
     if streaming_processor and hasattr(streaming_processor, 'stop_streaming'):
         try:
             streaming_processor.stop_streaming()
-            logger.info("Streaming processor stopped")
+            logger.info("✅ Streaming processor stopped")
         except Exception as e:
-            logger.error(f"Error stopping streaming processor: {str(e)}")
+            logger.error(f"❌ Error stopping streaming processor: {str(e)}")
     
     if snowflake_manager and hasattr(snowflake_manager, 'close'):
         try:
@@ -181,7 +208,7 @@ async def shutdown_event():
 async def root():
     """Root endpoint with environment information."""
     return {
-        "message": "Streamlytics API",
+        "message": "Netflix Analytics API",
         "version": "1.0.0",
         "status": "running",
         "environment": "railway" if os.getenv("RAILWAY_ENVIRONMENT") else "local",
