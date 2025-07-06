@@ -273,10 +273,10 @@ class NetflixDashboard:
             st.plotly_chart(fig, use_container_width=True)
         
         # Top shows by watch time
-        show_stats = self.data.groupby("show_name").agg({
+        show_stats = self.data.groupby("show_name", as_index=False).agg({
             "watch_duration_minutes": "sum",
             "user_id": "count"
-        }).reset_index()
+        })
         show_stats.columns = ["Show", "Total Watch Time (min)", "Sessions"]
         
         fig = px.bar(
@@ -296,11 +296,11 @@ class NetflixDashboard:
         
         with col1:
             # User engagement ranking
-            user_stats = self.data.groupby("user_id").agg({
+            user_stats = self.data.groupby("user_id", as_index=False).agg({
                 "engagement_score": "mean",
                 "watch_duration_minutes": "sum",
                 "is_binge_session": "sum"
-            }).reset_index()
+            })
             user_stats = user_stats.sort_values("engagement_score", ascending=False)
             
             fig = px.bar(
@@ -316,10 +316,10 @@ class NetflixDashboard:
         
         with col2:
             # Binge watching patterns
-            binge_stats = self.data.groupby("user_id").agg({
+            binge_stats = self.data.groupby("user_id", as_index=False).agg({
                 "is_binge_session": "sum"
-            }).reset_index()
-            binge_stats["total_sessions"] = self.data.groupby("user_id").size().reset_index(name="total_sessions")["total_sessions"]
+            })
+            binge_stats["total_sessions"] = self.data.groupby("user_id", as_index=False).size()["size"]
             binge_stats["binge_ratio"] = binge_stats["is_binge_session"] / binge_stats["total_sessions"]
             
             fig = px.scatter(
@@ -339,10 +339,10 @@ class NetflixDashboard:
         
         with col1:
             # Show completion rates
-            show_completion = self.data.groupby("show_name").agg({
+            show_completion = self.data.groupby("show_name", as_index=False).agg({
                 "completion_rate": "mean"
-            }).reset_index()
-            show_completion["view_count"] = self.data.groupby("show_name").size().reset_index(name="view_count")["view_count"]
+            })
+            show_completion["view_count"] = self.data.groupby("show_name", as_index=False).size()["size"]
             
             fig = px.scatter(
                 show_completion,
@@ -358,10 +358,10 @@ class NetflixDashboard:
         
         with col2:
             # Engagement by show
-            show_engagement = self.data.groupby("show_name").agg({
+            show_engagement = self.data.groupby("show_name", as_index=False).agg({
                 "engagement_score": "mean",
                 "watch_duration_minutes": "mean"
-            }).reset_index()
+            })
             
             fig = px.scatter(
                 show_engagement,
@@ -383,10 +383,10 @@ class NetflixDashboard:
         with col1:
             # Hourly viewing patterns
             self.data["hour"] = self.data["watch_date"].dt.hour
-            hourly_stats = self.data.groupby("hour").agg({
+            hourly_stats = self.data.groupby("hour", as_index=False).agg({
                 "watch_duration_minutes": "mean"
-            }).reset_index()
-            hourly_stats["session_count"] = self.data.groupby("hour").size().reset_index(name="session_count")["session_count"]
+            })
+            hourly_stats["session_count"] = self.data.groupby("hour", as_index=False).size()["size"]
             
             fig = px.line(
                 hourly_stats,
@@ -401,10 +401,10 @@ class NetflixDashboard:
         with col2:
             # Daily viewing patterns
             self.data["day_of_week"] = self.data["watch_date"].dt.day_name()
-            daily_stats = self.data.groupby("day_of_week").agg({
+            daily_stats = self.data.groupby("day_of_week", as_index=False).agg({
                 "is_binge_session": "sum"
-            }).reset_index()
-            daily_stats["session_count"] = self.data.groupby("day_of_week").size().reset_index(name="session_count")["session_count"]
+            })
+            daily_stats["session_count"] = self.data.groupby("day_of_week", as_index=False).size()["size"]
             
             # Reorder days
             day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
