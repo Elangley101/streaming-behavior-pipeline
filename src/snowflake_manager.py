@@ -6,10 +6,38 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
-from snowflake.sqlalchemy import URL
 
-from config.snowflake_config import CREATE_TABLE_STATEMENTS, SNOWFLAKE_CONFIG, TABLE_CONFIGS
-from src.utils import PipelineError, handle_pipeline_error, setup_logging
+# Try to import Snowflake-specific dependencies
+try:
+    from snowflake.sqlalchemy import URL
+    SNOWFLAKE_AVAILABLE = True
+except ImportError:
+    SNOWFLAKE_AVAILABLE = False
+    URL = None
+
+# Try to import config with fallback
+try:
+    from config.snowflake_config import CREATE_TABLE_STATEMENTS, SNOWFLAKE_CONFIG, TABLE_CONFIGS
+    CONFIG_AVAILABLE = True
+except ImportError:
+    CONFIG_AVAILABLE = False
+    CREATE_TABLE_STATEMENTS = {}
+    SNOWFLAKE_CONFIG = {}
+    TABLE_CONFIGS = {}
+
+# Try to import utils with fallback
+try:
+    from src.utils import PipelineError, handle_pipeline_error, setup_logging
+    UTILS_AVAILABLE = True
+except ImportError:
+    UTILS_AVAILABLE = False
+    PipelineError = Exception
+    def handle_pipeline_error(error, context):
+        print(f"Pipeline error in {context.get('step', 'unknown step')}: {str(error)}")
+    def setup_logging(name):
+        def log(message):
+            print(f"[{name}] {message}")
+        return log
 
 logger = setup_logging("snowflake_manager")
 
@@ -18,6 +46,12 @@ class SnowflakeManager:
     
     def __init__(self):
         """Initialize the Snowflake manager with connection configuration."""
+        if not SNOWFLAKE_AVAILABLE:
+            raise PipelineError("Snowflake SQLAlchemy not available")
+        
+        if not CONFIG_AVAILABLE:
+            raise PipelineError("Snowflake configuration not available")
+            
         self.config = SNOWFLAKE_CONFIG
         self.engine = self._create_engine()
         self._initialize_tables()
@@ -199,6 +233,10 @@ class SnowflakeManager:
             })
     
     def close(self) -> None:
-        """Close the Snowflake connection pool."""
-        self.engine.dispose()
-        logger.info("Closed Snowflake connection pool") 
+        """Close the Snowflake connection."""
+        try:
+            if hasattr(self, 'engine'):
+                self.engine.dispose()
+                logger.info("Snowflake connection closed")
+        except Exception as e:
+            logger.error(f"Error closing Snowflake connection: {str(e)}") 

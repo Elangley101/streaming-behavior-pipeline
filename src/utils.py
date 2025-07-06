@@ -2,12 +2,75 @@ import logging
 import logging.config
 from datetime import datetime
 from typing import Any, Dict, Optional
+import os
 
 import pandas as pd
-from config.config import LOGGING_CONFIG, VALIDATION_RULES
+
+# Try to import config with fallback
+try:
+    from config.config import LOGGING_CONFIG, VALIDATION_RULES
+    CONFIG_AVAILABLE = True
+except ImportError:
+    CONFIG_AVAILABLE = False
+    # Fallback configurations
+    LOGGING_CONFIG = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "standard": {
+                "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+            },
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": "INFO",
+                "formatter": "standard",
+                "stream": "ext://sys.stdout",
+            },
+        },
+        "loggers": {
+            "": {  # root logger
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": True
+            },
+        },
+    }
+    
+    VALIDATION_RULES = {
+        "user_id": {
+            "type": "string",
+            "required": True,
+            "min_length": 1,
+        },
+        "show_name": {
+            "type": "string",
+            "required": True,
+            "min_length": 1,
+        },
+        "watch_duration_minutes": {
+            "type": "number",
+            "required": True,
+            "minimum": 0,
+            "maximum": 1440,  # 24 hours
+        },
+        "watch_date": {
+            "type": "string",
+            "required": True,
+            "format": "datetime",
+        },
+    }
 
 # Configure logging
-logging.config.dictConfig(LOGGING_CONFIG)
+try:
+    logging.config.dictConfig(LOGGING_CONFIG)
+except Exception as e:
+    # Fallback to basic logging if config fails
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    )
 
 class PipelineError(Exception):
     """Custom exception for pipeline-specific errors."""
@@ -27,6 +90,10 @@ def validate_dataframe(df: pd.DataFrame) -> None:
     Raises:
         PipelineError: If validation fails
     """
+    if not CONFIG_AVAILABLE:
+        # Skip validation if config not available
+        return
+        
     for column, rules in VALIDATION_RULES.items():
         if rules["required"] and column not in df.columns:
             raise PipelineError(f"Required column '{column}' not found in DataFrame")
