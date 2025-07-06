@@ -13,8 +13,15 @@ import os
 
 # Simple logging function that always works
 def setup_logging(name):
-    def log(message):
-        print(f"[{name}] {message}")
+    def log(message, level="INFO"):
+        print(f"[{name}] {level}: {message}")
+    
+    # Add methods to match standard logging interface
+    log.info = lambda msg: log(msg, "INFO")
+    log.warning = lambda msg: log(msg, "WARNING")
+    log.error = lambda msg: log(msg, "ERROR")
+    log.debug = lambda msg: log(msg, "DEBUG")
+    
     return log
 
 logger = setup_logging("api_service")
@@ -59,8 +66,7 @@ try:
     from src.utils import PipelineError, setup_logging as utils_setup_logging
     UTILS_AVAILABLE = True
     logger.info("✅ Utils imported successfully")
-    # Use the proper logging if available
-    logger = utils_setup_logging("api_service")
+    # Keep the original logger to avoid reassignment issues
 except Exception as e:
     logger.warning(f"⚠️ Utils not available: {e}")
     logger.debug(f"Utils import traceback: {traceback.format_exc()}")
