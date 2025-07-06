@@ -53,9 +53,9 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
   # Main application
-  netflix-analytics:
+  streamlytics-api:
     build: .
-    container_name: netflix-analytics
+    container_name: streamlytics-api
     depends_on:
       - kafka
     ports:
@@ -67,7 +67,7 @@ services:
       - SNOWFLAKE_USER=${SNOWFLAKE_USER}
       - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
       - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE:-COMPUTE_WH}
-      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE:-NETFLIX_ANALYTICS}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE:-STREAMLYTICS}
       - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA:-PUBLIC}
       - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE:-ACCOUNTADMIN}
     volumes:
@@ -78,9 +78,9 @@ services:
   # Dashboard service
   dashboard:
     build: .
-    container_name: netflix-dashboard
+    container_name: streamlytics-dashboard
     depends_on:
-      - netflix-analytics
+      - streamlytics-api
     ports:
       - "8502:8501"
     environment:
@@ -92,7 +92,7 @@ services:
   # ETL Pipeline service
   pipeline:
     build: .
-    container_name: netflix-pipeline
+    container_name: streamlytics-pipeline
     depends_on:
       - kafka
     environment:
@@ -101,7 +101,7 @@ services:
       - SNOWFLAKE_USER=${SNOWFLAKE_USER}
       - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
       - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE:-COMPUTE_WH}
-      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE:-NETFLIX_ANALYTICS}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE:-STREAMLYTICS}
       - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA:-PUBLIC}
       - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE:-ACCOUNTADMIN}
     volumes:

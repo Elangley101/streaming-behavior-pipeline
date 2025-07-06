@@ -12,15 +12,13 @@ from src.snowflake_manager import SnowflakeManager
 from src.utils import PipelineError
 from config.config import PIPELINE_CONFIG
 
-# Page configuration
 st.set_page_config(
-    page_title="Netflix Analytics Dashboard",
+    page_title="Streamlytics Dashboard",
     page_icon="📺",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better styling
 st.markdown("""
 <style>
     .main-header {
@@ -42,28 +40,22 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-class NetflixDashboard:
-    """Interactive dashboard for Netflix behavioral analytics."""
-    
+class StreamlyticsDashboard:
     def __init__(self):
-        """Initialize the dashboard."""
         self.snowflake_manager = None
         self.data = None
         self.setup_sidebar()
     
     def setup_sidebar(self):
-        """Setup the sidebar with filters and options."""
-        st.sidebar.title("🎛️ Dashboard Controls")
+        st.sidebar.title("Dashboard Controls")
         
-        # Data source selection
         data_source = st.sidebar.selectbox(
             "Data Source",
             ["Sample Data", "Snowflake", "Parquet Files"],
             help="Choose where to load data from"
         )
         
-        # Date range filter
-        st.sidebar.subheader("📅 Date Range")
+        st.sidebar.subheader("Date Range")
         end_date = datetime.now()
         start_date = end_date - timedelta(days=30)
         
@@ -73,16 +65,14 @@ class NetflixDashboard:
             max_value=end_date.date()
         )
         
-        # User filter
-        st.sidebar.subheader("👥 User Filter")
+        st.sidebar.subheader("User Filter")
         user_filter = st.sidebar.multiselect(
             "Select Users",
             ["All Users"] + [f"user_{i:04d}" for i in range(1, 101)],
             default=["All Users"]
         )
         
-        # Show filter
-        st.sidebar.subheader("📺 Show Filter")
+        st.sidebar.subheader("Show Filter")
         show_filter = st.sidebar.multiselect(
             "Select Shows",
             ["All Shows", "Stranger Things", "The Crown", "Breaking Bad", "Friends"],
@@ -97,7 +87,6 @@ class NetflixDashboard:
         }
     
     def load_data(self):
-        """Load data based on selected source."""
         try:
             if self.filters["data_source"] == "Sample Data":
                 self.load_sample_data()
@@ -107,11 +96,9 @@ class NetflixDashboard:
                 self.load_parquet_data()
         except Exception as e:
             st.error(f"Error loading data: {str(e)}")
-            self.load_sample_data()  # Fallback to sample data
+            self.load_sample_data()
     
     def load_sample_data(self):
-        """Load sample data for demonstration."""
-        # Generate sample data
         np.random.seed(42)
         dates = pd.date_range(start=self.filters["date_range"][0], 
                             end=self.filters["date_range"][1], freq='H')
@@ -135,7 +122,6 @@ class NetflixDashboard:
         self.data["watch_date"] = pd.to_datetime(self.data["watch_date"])
     
     def load_snowflake_data(self):
-        """Load data from Snowflake."""
         try:
             self.snowflake_manager = SnowflakeManager()
             query = """
@@ -152,7 +138,6 @@ class NetflixDashboard:
             self.load_sample_data()
     
     def load_parquet_data(self):
-        """Load data from Parquet files."""
         try:
             parquet_path = PIPELINE_CONFIG["processed_data_path"]
             if Path(parquet_path).exists():
@@ -165,31 +150,25 @@ class NetflixDashboard:
             self.load_sample_data()
     
     def apply_filters(self):
-        """Apply user-selected filters to the data."""
         if self.data is None:
             return
         
-        # Date filter
         if len(self.filters["date_range"]) == 2:
             self.data = self.data[
                 (self.data["watch_date"].dt.date >= self.filters["date_range"][0]) &
                 (self.data["watch_date"].dt.date <= self.filters["date_range"][1])
             ]
         
-        # User filter
         if "All Users" not in self.filters["user_filter"]:
             self.data = self.data[self.data["user_id"].isin(self.filters["user_filter"])]
         
-        # Show filter
         if "All Shows" not in self.filters["show_filter"]:
             self.data = self.data[self.data["show_name"].isin(self.filters["show_filter"])]
     
     def render_header(self):
-        """Render the dashboard header."""
-        st.markdown('<h1 class="main-header">📺 Netflix Analytics Dashboard</h1>', 
+        st.markdown('<h1 class="main-header">Streamlytics Dashboard</h1>', 
                    unsafe_allow_html=True)
         
-        # Key metrics row
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
@@ -274,9 +253,9 @@ class NetflixDashboard:
         
         # Top shows by watch time
         show_stats = self.data.groupby("show_name").agg({
-            "watch_duration_minutes": "sum",
-            "user_id": "count"
+            "watch_duration_minutes": "sum"
         }).reset_index()
+        show_stats["sessions"] = self.data.groupby("show_name").size().reset_index(name="sessions")["sessions"]
         show_stats.columns = ["Show", "Total Watch Time (min)", "Sessions"]
         
         fig = px.bar(
@@ -435,7 +414,7 @@ class NetflixDashboard:
 
 def main():
     """Main function to run the dashboard."""
-    dashboard = NetflixDashboard()
+    dashboard = StreamlyticsDashboard()
     dashboard.run()
 
 if __name__ == "__main__":

@@ -85,7 +85,7 @@ class StreamingProcessor:
                 self.input_topic,
                 bootstrap_servers=self.kafka_bootstrap_servers,
                 value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-                group_id='netflix_analytics_group',
+                group_id='streamlytics_group',
                 auto_offset_reset='earliest',
                 enable_auto_commit=True,
                 auto_commit_interval_ms=1000
