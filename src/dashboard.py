@@ -317,10 +317,10 @@ class NetflixDashboard:
         with col2:
             # Binge watching patterns
             binge_stats = self.data.groupby("user_id").agg({
-                "is_binge_session": "sum",
-                "user_id": "count"
+                "is_binge_session": "sum"
             }).reset_index()
-            binge_stats["binge_ratio"] = binge_stats["is_binge_session"] / binge_stats["user_id"]
+            binge_stats["total_sessions"] = self.data.groupby("user_id").size().reset_index(name="total_sessions")["total_sessions"]
+            binge_stats["binge_ratio"] = binge_stats["is_binge_session"] / binge_stats["total_sessions"]
             
             fig = px.scatter(
                 binge_stats,
@@ -340,18 +340,18 @@ class NetflixDashboard:
         with col1:
             # Show completion rates
             show_completion = self.data.groupby("show_name").agg({
-                "completion_rate": "mean",
-                "user_id": "count"
+                "completion_rate": "mean"
             }).reset_index()
+            show_completion["view_count"] = self.data.groupby("show_name").size().reset_index(name="view_count")["view_count"]
             
             fig = px.scatter(
                 show_completion,
                 x="completion_rate",
-                y="user_id",
-                size="user_id",
+                y="view_count",
+                size="view_count",
                 hover_data=["show_name"],
                 title="Show Performance: Completion Rate vs Views",
-                labels={"completion_rate": "Average Completion Rate", "user_id": "Number of Views"}
+                labels={"completion_rate": "Average Completion Rate", "view_count": "Number of Views"}
             )
             fig.update_layout(height=400)
             st.plotly_chart(fig, use_container_width=True)
@@ -384,16 +384,16 @@ class NetflixDashboard:
             # Hourly viewing patterns
             self.data["hour"] = self.data["watch_date"].dt.hour
             hourly_stats = self.data.groupby("hour").agg({
-                "user_id": "count",
                 "watch_duration_minutes": "mean"
             }).reset_index()
+            hourly_stats["session_count"] = self.data.groupby("hour").size().reset_index(name="session_count")["session_count"]
             
             fig = px.line(
                 hourly_stats,
                 x="hour",
-                y="user_id",
+                y="session_count",
                 title="Viewing Patterns by Hour",
-                labels={"hour": "Hour of Day", "user_id": "Number of Sessions"}
+                labels={"hour": "Hour of Day", "session_count": "Number of Sessions"}
             )
             fig.update_layout(height=400)
             st.plotly_chart(fig, use_container_width=True)
@@ -402,9 +402,9 @@ class NetflixDashboard:
             # Daily viewing patterns
             self.data["day_of_week"] = self.data["watch_date"].dt.day_name()
             daily_stats = self.data.groupby("day_of_week").agg({
-                "user_id": "count",
                 "is_binge_session": "sum"
             }).reset_index()
+            daily_stats["session_count"] = self.data.groupby("day_of_week").size().reset_index(name="session_count")["session_count"]
             
             # Reorder days
             day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -414,9 +414,9 @@ class NetflixDashboard:
             fig = px.bar(
                 daily_stats,
                 x="day_of_week",
-                y="user_id",
+                y="session_count",
                 title="Viewing Patterns by Day of Week",
-                labels={"day_of_week": "Day of Week", "user_id": "Number of Sessions"}
+                labels={"day_of_week": "Day of Week", "session_count": "Number of Sessions"}
             )
             fig.update_layout(height=400)
             st.plotly_chart(fig, use_container_width=True)
