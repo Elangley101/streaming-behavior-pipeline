@@ -5,6 +5,7 @@ Fix local file permission and API service issues.
 
 import os
 import subprocess
+import logging
 
 def fix_local_issues():
     """Fix local file permission and API service issues."""
