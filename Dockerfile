@@ -24,8 +24,27 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p data/raw data/processed logs
+# Create necessary directories and set permissions
+RUN mkdir -p data/raw data/processed logs && \
+    chmod 755 data/raw data/processed logs
+
+# Fix API service logging issue during build
+RUN sed -i 's/def log(message):/def log(message, level="INFO"):/' src/api_service.py && \
+    sed -i '/def log(message, level="INFO"):/a\\    # Add methods to match standard logging interface\n    log.info = lambda msg: log(msg, "INFO")\n    log.warning = lambda msg: log(msg, "WARNING")\n    log.error = lambda msg: log(msg, "ERROR")\n    log.debug = lambda msg: log(msg, "DEBUG")\n    ' src/api_service.py
+
+# Create sample data file during build
+RUN echo "user_id,show_name,watch_duration_minutes,watch_date" > data/raw/watch_logs.csv && \
+    echo "user_001,Stranger Things,45,2024-01-15 20:30:00" >> data/raw/watch_logs.csv && \
+    echo "user_002,The Crown,60,2024-01-15 19:15:00" >> data/raw/watch_logs.csv && \
+    echo "user_003,Wednesday,30,2024-01-15 21:00:00" >> data/raw/watch_logs.csv && \
+    echo "user_004,Bridgerton,90,2024-01-15 18:45:00" >> data/raw/watch_logs.csv && \
+    echo "user_005,The Witcher,75,2024-01-15 22:15:00" >> data/raw/watch_logs.csv && \
+    echo "user_006,Squid Game,120,2024-01-15 23:00:00" >> data/raw/watch_logs.csv && \
+    echo "user_007,Black Mirror,45,2024-01-16 20:00:00" >> data/raw/watch_logs.csv && \
+    echo "user_008,The Umbrella Academy,90,2024-01-16 21:30:00" >> data/raw/watch_logs.csv && \
+    echo "user_009,You,60,2024-01-16 22:15:00" >> data/raw/watch_logs.csv && \
+    echo "user_010,Sex Education,30,2024-01-16 19:45:00" >> data/raw/watch_logs.csv && \
+    chmod 644 data/raw/watch_logs.csv
 
 # Expose ports
 EXPOSE 8000 8501
