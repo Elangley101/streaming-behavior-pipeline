@@ -411,9 +411,7 @@ class NetflixDashboard:
                 "is_binge_session": "sum"
             })
             # Get session count
-            session_count = self.data.groupby("day_of_week", as_index=False).agg({
-                "day_of_week": "count"
-            }).rename(columns={"day_of_week": "session_count"})
+            session_count = self.data.groupby("day_of_week").size().reset_index(name="session_count")
             daily_stats = pd.merge(daily_stats, session_count, on="day_of_week")
             
             # Reorder days
