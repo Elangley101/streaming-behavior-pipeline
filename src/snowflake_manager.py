@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
-from sqlalchemy import create_engine, text, MetaData, Table, Column, Integer, String, Float, DateTime, Boolean
+from sqlalchemy import create_engine, text, MetaData, Table, Column, Integer, String, Float, DateTime, Boolean, Engine
 from sqlalchemy.exc import SQLAlchemyError
 from snowflake.connector import connect, SnowflakeConnection
 from snowflake.connector.errors import ProgrammingError, DatabaseError
