@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Dict, List, Optional, Any, TYPE_CHECKING
+from typing import Dict, List, Optional, Any, TYPE_CHECKING, Generator
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
@@ -10,6 +10,7 @@ from snowflake.connector import connect, SnowflakeConnection
 from snowflake.connector.errors import ProgrammingError, DatabaseError
 import json
 from pathlib import Path
+from contextlib import contextmanager
 
 # Configuration imports
 from config.snowflake_config import SNOWFLAKE_CONFIG
