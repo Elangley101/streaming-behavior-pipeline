@@ -28,10 +28,6 @@ COPY . .
 RUN mkdir -p data/raw data/processed logs && \
     chmod 755 data/raw data/processed logs
 
-# Fix API service logging issue during build
-RUN sed -i 's/def log(message):/def log(message, level="INFO"):/' src/api_service.py && \
-    sed -i '/def log(message, level="INFO"):/a\\    # Add methods to match standard logging interface\n    log.info = lambda msg: log(msg, "INFO")\n    log.warning = lambda msg: log(msg, "WARNING")\n    log.error = lambda msg: log(msg, "ERROR")\n    log.debug = lambda msg: log(msg, "DEBUG")\n    ' src/api_service.py
-
 # Create sample data file during build
 RUN echo "user_id,show_name,watch_duration_minutes,watch_date" > data/raw/watch_logs.csv && \
     echo "user_001,Stranger Things,45,2024-01-15 20:30:00" >> data/raw/watch_logs.csv && \
