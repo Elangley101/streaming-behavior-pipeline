@@ -320,9 +320,7 @@ class NetflixDashboard:
                 "is_binge_session": "sum"
             })
             # Get total sessions count
-            total_sessions = self.data.groupby("user_id", as_index=False).agg({
-                "user_id": "count"
-            }).rename(columns={"user_id": "total_sessions"})
+            total_sessions = self.data.groupby("user_id").size().reset_index(name="total_sessions")
             binge_stats = pd.merge(binge_stats, total_sessions, on="user_id")
             binge_stats["binge_ratio"] = binge_stats["is_binge_session"] / binge_stats["total_sessions"]
             
