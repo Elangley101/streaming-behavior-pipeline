@@ -319,7 +319,11 @@ class NetflixDashboard:
             binge_stats = self.data.groupby("user_id", as_index=False).agg({
                 "is_binge_session": "sum"
             })
-            binge_stats["total_sessions"] = self.data.groupby("user_id", as_index=False).size()["size"]
+            # Get total sessions count
+            total_sessions = self.data.groupby("user_id", as_index=False).agg({
+                "user_id": "count"
+            }).rename(columns={"user_id": "total_sessions"})
+            binge_stats = pd.merge(binge_stats, total_sessions, on="user_id")
             binge_stats["binge_ratio"] = binge_stats["is_binge_session"] / binge_stats["total_sessions"]
             
             fig = px.scatter(
@@ -342,7 +346,11 @@ class NetflixDashboard:
             show_completion = self.data.groupby("show_name", as_index=False).agg({
                 "completion_rate": "mean"
             })
-            show_completion["view_count"] = self.data.groupby("show_name", as_index=False).size()["size"]
+            # Get view count
+            view_count = self.data.groupby("show_name", as_index=False).agg({
+                "show_name": "count"
+            }).rename(columns={"show_name": "view_count"})
+            show_completion = pd.merge(show_completion, view_count, on="show_name")
             
             fig = px.scatter(
                 show_completion,
@@ -386,7 +394,11 @@ class NetflixDashboard:
             hourly_stats = self.data.groupby("hour", as_index=False).agg({
                 "watch_duration_minutes": "mean"
             })
-            hourly_stats["session_count"] = self.data.groupby("hour", as_index=False).size()["size"]
+            # Get session count
+            session_count = self.data.groupby("hour", as_index=False).agg({
+                "hour": "count"
+            }).rename(columns={"hour": "session_count"})
+            hourly_stats = pd.merge(hourly_stats, session_count, on="hour")
             
             fig = px.line(
                 hourly_stats,
@@ -404,7 +416,11 @@ class NetflixDashboard:
             daily_stats = self.data.groupby("day_of_week", as_index=False).agg({
                 "is_binge_session": "sum"
             })
-            daily_stats["session_count"] = self.data.groupby("day_of_week", as_index=False).size()["size"]
+            # Get session count
+            session_count = self.data.groupby("day_of_week", as_index=False).agg({
+                "day_of_week": "count"
+            }).rename(columns={"day_of_week": "session_count"})
+            daily_stats = pd.merge(daily_stats, session_count, on="day_of_week")
             
             # Reorder days
             day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
