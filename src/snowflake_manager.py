@@ -1,10 +1,10 @@
 import os
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
-from sqlalchemy import create_engine, text, MetaData, Table, Column, Integer, String, Float, DateTime, Boolean, Engine
+from sqlalchemy import create_engine, text, MetaData, Table, Column, Integer, String, Float, DateTime, Boolean
 from sqlalchemy.exc import SQLAlchemyError
 from snowflake.connector import connect, SnowflakeConnection
 from snowflake.connector.errors import ProgrammingError, DatabaseError
@@ -52,6 +52,9 @@ except ImportError:
 
 logger = setup_logging("snowflake_manager")
 
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Engine
+
 class SnowflakeManager:
     """Manages Snowflake connections and operations."""
     
@@ -67,12 +70,12 @@ class SnowflakeManager:
         self.engine = self._create_engine()
         self._initialize_tables()
     
-    def _create_engine(self) -> Engine:
+    def _create_engine(self):
         """
         Create a SQLAlchemy engine for Snowflake.
         
         Returns:
-            Engine: SQLAlchemy engine instance
+            SQLAlchemy engine instance
             
         Raises:
             PipelineError: If engine creation fails
