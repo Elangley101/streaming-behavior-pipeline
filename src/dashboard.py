@@ -345,9 +345,7 @@ class NetflixDashboard:
                 "completion_rate": "mean"
             })
             # Get view count
-            view_count = self.data.groupby("show_name", as_index=False).agg({
-                "show_name": "count"
-            }).rename(columns={"show_name": "view_count"})
+            view_count = self.data.groupby("show_name").size().reset_index(name="view_count")
             show_completion = pd.merge(show_completion, view_count, on="show_name")
             
             fig = px.scatter(
@@ -393,9 +391,7 @@ class NetflixDashboard:
                 "watch_duration_minutes": "mean"
             })
             # Get session count
-            session_count = self.data.groupby("hour", as_index=False).agg({
-                "hour": "count"
-            }).rename(columns={"hour": "session_count"})
+            session_count = self.data.groupby("hour").size().reset_index(name="session_count")
             hourly_stats = pd.merge(hourly_stats, session_count, on="hour")
             
             fig = px.line(
