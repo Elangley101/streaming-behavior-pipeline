@@ -378,3 +378,55 @@ For issues and questions:
 ---
 
 **Happy Streaming! 🎬** 
+
+# Deployment Guide
+
+## ☁️ Cloud Deployment Overview
+This project is designed for easy deployment to cloud platforms, especially Snowflake, AWS, and GCP.
+
+### Snowflake
+- Use Snowflake for scalable, secure cloud data warehousing.
+- Store credentials in environment variables or a secrets manager.
+- Use DBT Cloud or CI/CD to automate model runs.
+
+### AWS
+- Deploy dashboards and APIs on EC2, ECS, or EKS.
+- Store data in S3 for raw/processed layers.
+- Use AWS Secrets Manager for credentials.
+- Use CodePipeline or GitHub Actions for CI/CD.
+
+### GCP
+- Use BigQuery as a warehouse alternative.
+- Deploy dashboards on Cloud Run or GKE.
+- Store data in GCS buckets.
+- Use Secret Manager for credentials.
+- Use Cloud Build for CI/CD.
+
+## 🐳 Docker Compose
+- Use `docker-compose.yml` for local orchestration.
+- Mount volumes for persistent data.
+- Expose ports for dashboards and APIs.
+
+## 🔒 Secrets & Security
+- Never commit secrets to version control.
+- Use `.env` files locally, secrets managers in production.
+- Restrict network access to databases and dashboards.
+
+## 🚀 Sample Deployment Outline
+1. Build Docker images:
+   ```sh
+   docker-compose build
+   ```
+2. Set environment variables and secrets.
+3. Start services:
+   ```sh
+   docker-compose up -d
+   ```
+4. Run DBT models:
+   ```sh
+   dbt run
+   ```
+5. Access dashboards at the exposed ports.
+
+---
+For more details, see the README and code comments. 

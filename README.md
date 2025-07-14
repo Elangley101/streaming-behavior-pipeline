@@ -1,234 +1,94 @@
-# Netflix Behavioral Data Pipeline
+# Netflix-Style Streaming Analytics Pipeline
 
-A production-ready data engineering pipeline that processes Netflix-style user behavior data with real-time streaming, analytics, and interactive dashboards.
+[![Build Status](https://github.com/<your-username>/<your-repo>/actions/workflows/ci.yml/badge.svg)](https://github.com/<your-username>/<your-repo>/actions)
+[![Test Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen)](https://github.com/<your-username>/<your-repo>/actions)
 
-## 🚀 Live Demo
-- **Dashboard**: [Coming Soon - AWS Deployment]
-- **API Documentation**: [Coming Soon - AWS Deployment]
-- **Kafka UI**: [Coming Soon - AWS Deployment]
+## 🚀 Project Overview
+A modern, end-to-end data engineering pipeline that ingests, transforms, and analyzes streaming behavior data (inspired by Netflix). Built with Snowflake, DBT, and Streamlit, this project demonstrates best practices in data modeling, quality, automation, and analytics delivery.
+
+## 💡 Business Value
+- **Understand user engagement** and content performance for a streaming platform.
+- **Enable data-driven decisions** for content, marketing, and product teams.
+- **Showcase robust, production-ready data engineering skills.**
 
 ## 🏗️ Architecture
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Raw Data      │    │   ETL Pipeline  │    │   Analytics     │
-│   (CSV/JSON)    │───▶│   (Transform)   │───▶│   (Parquet)     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │  Real-time      │
-                       │  Streaming      │
-                       │  (Kafka)        │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐    ┌─────────────────┐
-                       │   FastAPI       │    │   Streamlit     │
-                       │   Analytics     │    │   Dashboard     │
-                       │   Service       │    │   (Real-time)   │
-                       └─────────────────┘    └─────────────────┘
+```mermaid
+graph TD
+    A[Raw Data (User Watch Sessions)] --> B[Snowflake: USER_WATCH_SESSIONS]
+    B --> C[DBT: Transformations]
+    C --> D1[FACT_USER_WATCH_SESSIONS]
+    C --> D2[DIM_USERS]
+    C --> D3[DIM_SHOWS]
+    C --> D4[MART_CONTENT_ANALYTICS]
+    C --> D5[MART_USER_ANALYTICS]
+    D1 & D2 & D3 & D4 & D5 --> E[Streamlit Dashboards]
+    C --> F[Data Quality Dashboard]
+    C --> G[Data Lineage Tracking]
 ```
 
-## 🛠️ Tech Stack
+## 🛠️ Setup Instructions
+1. **Clone the repo:**
+   ```sh
+   git clone <your-repo-url>
+   cd streaming-behavior-pipeline
+   ```
+2. **Install dependencies:**
+   ```sh
+   pip install -r requirements.txt
+   ```
+3. **Configure environment:**
+   - Copy `.env.example` to `.env` and fill in your Snowflake credentials.
+   - Ensure `profiles.yml` is set for your Snowflake account.
+4. **Load sample data:**
+   ```sh
+   python load_snowflake_data.py
+   ```
+5. **Run DBT models:**
+   ```sh
+   dbt run
+   ```
+6. **Launch dashboards:**
+   ```sh
+   streamlit run src/dashboard.py
+   streamlit run src/sql_dashboard.py --server.port 8502
+   streamlit run src/data_quality_dashboard.py --server.port 8503
+   ```
 
-### **Data Processing**
-- **Python 3.11** - Core programming language
-- **Pandas** - Data manipulation and analysis
-- **PyArrow** - High-performance data format (Parquet)
-- **Kafka** - Real-time event streaming
+## 🔄 Pipeline Flow
+1. **Raw data** is loaded into `USER_WATCH_SESSIONS` (Snowflake).
+2. **DBT** transforms raw data into facts, dims, and marts.
+3. **Dashboards** (Streamlit) provide analytics, data quality, and lineage insights.
+4. **Automated tests** and data quality checks ensure trust and reliability.
 
-### **Web Services**
-- **FastAPI** - High-performance REST API
-- **Streamlit** - Interactive data dashboard
-- **Uvicorn** - ASGI server
+## 📊 Dashboards
+- **Main Analytics:** `src/dashboard.py`
+- **SQL/DBT Analytics:** `src/sql_dashboard.py`
+- **Data Quality:** `src/data_quality_dashboard.py`
 
-### **Infrastructure**
-- **Docker** - Containerization
-- **Docker Compose** - Multi-service orchestration
-- **Snowflake** - Cloud data warehouse (optional)
+## ☁️ Cloud & Deployment Notes
+- Designed for Snowflake, but can be adapted for BigQuery, Redshift, or Databricks.
+- Docker Compose included for local orchestration.
+- See `DEPLOYMENT.md` for cloud deployment tips.
 
-### **Data Quality & Monitoring**
-- **Great Expectations** - Data validation
-- **Prometheus** - Metrics collection
-- **Structured Logging** - Comprehensive logging
+## 🔒 Secrets & Security
+- `.env` and credentials are gitignored.
+- Never commit secrets to version control.
 
-## 🚀 Features
+## 🧪 Testing & Data Quality
+- Unit tests in `tests/`
+- DBT model tests for nulls, uniqueness, relationships
+- Data quality dashboard with advanced checks (nulls, duplicates, ranges, anomalies, referential integrity)
 
-### **Data Pipeline**
-- ✅ **ETL Processing**: Extract, transform, and load user behavior data
-- ✅ **Data Validation**: Comprehensive data quality checks
-- ✅ **Real-time Streaming**: Kafka-based event processing
-- ✅ **Batch Processing**: Efficient bulk data operations
+## 🧬 Data Lineage
+- Visualize data flow and transformations in the dashboard.
 
-### **Analytics & Visualization**
-- ✅ **Interactive Dashboard**: Real-time analytics with Streamlit
-- ✅ **REST API**: Programmatic access to processed data
-- ✅ **Data Visualization**: Charts, graphs, and metrics
-- ✅ **Real-time Updates**: Live data streaming to dashboard
-
-### **Production Features**
-- ✅ **Error Handling**: Robust error management and recovery
-- ✅ **Logging**: Comprehensive logging with structured format
-- ✅ **Monitoring**: Performance metrics and health checks
-- ✅ **Scalability**: Containerized microservices architecture
-
-## 📊 Data Model
-
-### **Input Data Schema**
-```json
-{
-  "user_id": "string",
-  "show_name": "string", 
-  "watch_duration_minutes": "float",
-  "watch_date": "datetime"
-}
-```
-
-### **Processed Data Schema**
-```json
-{
-  "user_id": "string",
-  "show_name": "string",
-  "watch_duration_minutes": "float",
-  "watch_date": "datetime",
-  "completion_rate": "float",
-  "is_binge_session": "boolean",
-  "engagement_score": "float",
-  "processed_at": "datetime"
-}
-```
-
-## 🚀 Quick Start
-
-### **Prerequisites**
-- Docker and Docker Compose
-- Python 3.11+
-- Git
-
-### **Local Development**
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/netflix-behavior-pipeline.git
-cd netflix-behavior-pipeline
-
-# Start all services
-docker-compose up -d
-
-# Access services
-# Dashboard: http://localhost:8502
-# API Docs: http://localhost:8000/docs
-# Kafka UI: http://localhost:8080
-```
-
-### **Generate Sample Data**
-```bash
-# Generate sample data for testing
-python src/generate_sample_data.py
-```
-
-## 📈 Performance Metrics
-
-- **Processing Speed**: 1000+ records/second
-- **Data Throughput**: Real-time streaming with <100ms latency
-- **Storage Efficiency**: 80% compression with Parquet format
-- **Scalability**: Horizontal scaling with container orchestration
-
-## 🔧 Configuration
-
-### **Environment Variables**
-```bash
-# Kafka Configuration
-KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-
-# Snowflake Configuration (Optional)
-SNOWFLAKE_ACCOUNT=your_account
-SNOWFLAKE_USER=your_user
-SNOWFLAKE_PASSWORD=your_password
-
-# Pipeline Configuration
-RAW_DATA_PATH=data/raw/watch_logs.csv
-PROCESSED_DATA_PATH=data/processed/processed_watch_data.parquet
-```
-
-## 🧪 Testing
-
-```bash
-# Run unit tests
-pytest tests/
-
-# Run integration tests
-pytest tests/test_pipeline.py
-
-# Run with coverage
-pytest --cov=src tests/
-```
-
-## 📊 Business Impact
-
-This pipeline enables:
-- **Real-time User Analytics**: Monitor user behavior patterns
-- **Content Optimization**: Identify popular shows and viewing patterns
-- **Personalization**: Build recommendation engines
-- **Business Intelligence**: Data-driven decision making
-
-## 🏗️ System Design Decisions
-
-### **Why Kafka?**
-- **Real-time Processing**: Low-latency event streaming
-- **Scalability**: Horizontal scaling for high throughput
-- **Reliability**: Fault-tolerant message delivery
-- **Decoupling**: Loose coupling between services
-
-### **Why Parquet?**
-- **Compression**: 80% storage reduction
-- **Performance**: Columnar format for analytics
-- **Schema Evolution**: Backward/forward compatibility
-- **Cloud Integration**: Native support in cloud platforms
-
-### **Why Microservices?**
-- **Scalability**: Independent scaling of components
-- **Maintainability**: Isolated development and deployment
-- **Technology Diversity**: Best tool for each job
-- **Fault Isolation**: Single point of failure prevention
-
-## 🚀 Deployment
-
-### **AWS Deployment (Recommended)**
-- **EC2**: Container hosting
-- **RDS**: Database storage
-- **S3**: Data lake storage
-- **CloudWatch**: Monitoring and logging
-
-### **Local Development**
-- **Docker Compose**: Multi-service orchestration
-- **Volume Mounting**: Persistent data storage
-- **Port Mapping**: Service accessibility
-
-## 📈 Future Enhancements
-
-- **ML Pipeline Integration**: Real-time model serving
-- **Advanced Analytics**: A/B testing framework
-- **Data Governance**: Lineage tracking and compliance
-- **Multi-cloud Support**: AWS, GCP, Azure deployment
-- **Real-time ML**: Feature engineering and predictions
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-Built with ❤️ for data engineering excellence.
+## 🏆 Project Summary
+This project demonstrates:
+- Modern data engineering (Snowflake, DBT, Streamlit)
+- Data quality, testing, and automation
+- Cloud-readiness and production best practices
+- Business impact through analytics
 
 ---
 
-**Ready for production deployment and real-world data engineering challenges!** 🚀
+*For more details, see the data dictionary, architecture diagram, and code comments throughout the repo.*

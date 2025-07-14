@@ -1,5 +1,5 @@
-# Use Python 3.12 slim image
-FROM python:3.12-slim
+# Use Python 3.11 slim image for better DBT compatibility
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
@@ -21,8 +21,14 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install setuptools to ensure distutils is available (backup fix)
+RUN pip install --no-cache-dir setuptools
+
 # Copy application code
 COPY . .
+
+# Install dbt packages (temporarily disabled due to packages.yml issues)
+# RUN dbt deps
 
 # Create necessary directories and set permissions
 RUN mkdir -p data/raw data/processed logs && \
@@ -51,10 +57,14 @@ if [ "$1" = "api" ]; then\n\
     exec python src/api_service.py\n\
 elif [ "$1" = "dashboard" ]; then\n\
     exec streamlit run src/dashboard.py --server.port 8501 --server.address 0.0.0.0\n\
+elif [ "$1" = "sql-dashboard" ]; then\n\
+    exec streamlit run src/sql_dashboard.py --server.port 8501 --server.address 0.0.0.0\n\
+elif [ "$1" = "data-quality-dashboard" ]; then\n\
+    exec streamlit run src/data_quality_dashboard.py --server.port 8501 --server.address 0.0.0.0\n\
 elif [ "$1" = "pipeline" ]; then\n\
     exec python src/etl_runner.py\n\
 else\n\
-    echo "Usage: docker run <image> [api|dashboard|pipeline]"\n\
+    echo "Usage: docker run <image> [api|dashboard|sql-dashboard|data-quality-dashboard|pipeline]"\n\
     exit 1\n\
 fi' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 

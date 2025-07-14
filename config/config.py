@@ -1,10 +1,6 @@
 import os
 from pathlib import Path
 from typing import Dict, Any
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 # Base paths
 BASE_DIR = Path(__file__).parent.parent
@@ -20,8 +16,8 @@ PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 PIPELINE_CONFIG: Dict[str, Any] = {
     "raw_data_path": str(RAW_DATA_DIR / "watch_logs.csv"),
     "processed_data_path": str(PROCESSED_DATA_DIR / "processed_watch_data.parquet"),
-    "binge_watch_threshold_minutes": 120,  # 2 hours
-    "completion_rate_threshold": 0.8,  # 80%
+    "binge_watch_threshold_minutes": 120,  
+    "completion_rate_threshold": 0.8,  
     "batch_size": 10000,
     "log_level": os.getenv("LOG_LEVEL", "INFO"),
 }

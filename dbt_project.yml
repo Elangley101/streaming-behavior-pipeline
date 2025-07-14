@@ -1,0 +1,39 @@
+name: 'netflix_analytics'
+version: '1.0.0'
+config-version: 2
+
+profile: 'netflix_analytics'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  netflix_analytics:
+    marts:
+      +materialized: table
+    intermediate:
+      +materialized: view
+    staging:
+      +materialized: view
+
+vars:
+  # Variables for the project
+  start_date: "2024-01-01"
+  end_date: "2024-12-31"
+
+seeds:
+  netflix_analytics:
+    +column_types:
+      user_id: varchar
+      show_name: varchar
+      watch_duration_minutes: integer
+      watch_date: timestamp 

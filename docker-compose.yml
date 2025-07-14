@@ -52,17 +52,27 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
+  # Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
   # Main application
   netflix-analytics:
     build: .
     container_name: netflix-analytics
     depends_on:
       - kafka
+      - redis
     ports:
       - "8000:8000"  # API
-      - "8501:8501"  # Dashboard
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - REDIS_URL=redis://redis:6379
       - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
       - SNOWFLAKE_USER=${SNOWFLAKE_USER}
       - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
@@ -75,19 +85,74 @@ services:
       - ./logs:/app/logs
     command: api
 
-  # Dashboard service
+  # Main Analytics Dashboard
   dashboard:
     build: .
     container_name: netflix-dashboard
     depends_on:
       - netflix-analytics
+      - redis
+    ports:
+      - "8501:8501"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - REDIS_URL=redis://redis:6379
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE:-COMPUTE_WH}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE:-NETFLIX_ANALYTICS}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA:-PUBLIC}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE:-ACCOUNTADMIN}
+    volumes:
+      - ./data:/app/data
+    command: dashboard
+
+  # SQL Dashboard
+  sql-dashboard:
+    build: .
+    container_name: netflix-sql-dashboard
+    depends_on:
+      - netflix-analytics
+      - redis
     ports:
       - "8502:8501"
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - REDIS_URL=redis://redis:6379
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE:-COMPUTE_WH}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE:-NETFLIX_ANALYTICS}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA:-PUBLIC}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE:-ACCOUNTADMIN}
     volumes:
       - ./data:/app/data
-    command: dashboard
+    command: sql-dashboard
+
+  # Data Quality Dashboard
+  data-quality-dashboard:
+    build: .
+    container_name: netflix-data-quality-dashboard
+    depends_on:
+      - netflix-analytics
+      - redis
+    ports:
+      - "8503:8501"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - REDIS_URL=redis://redis:6379
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE:-COMPUTE_WH}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE:-NETFLIX_ANALYTICS}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA:-PUBLIC}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE:-ACCOUNTADMIN}
+    volumes:
+      - ./data:/app/data
+    command: data-quality-dashboard
 
   # ETL Pipeline service
   pipeline:
@@ -95,8 +160,10 @@ services:
     container_name: netflix-pipeline
     depends_on:
       - kafka
+      - redis
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - REDIS_URL=redis://redis:6379
       - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
       - SNOWFLAKE_USER=${SNOWFLAKE_USER}
       - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
@@ -112,4 +179,5 @@ services:
 volumes:
   zookeeper-data:
   zookeeper-logs:
-  kafka-data: 
+  kafka-data:
+  redis-data: 

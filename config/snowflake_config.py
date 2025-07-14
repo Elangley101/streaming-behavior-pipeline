@@ -1,18 +1,14 @@
 import os
 from typing import Dict, Any
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
-
-# Snowflake connection configuration
+# Snowflake connection configuration using environment variables
 SNOWFLAKE_CONFIG: Dict[str, Any] = {
     "account": os.getenv("SNOWFLAKE_ACCOUNT"),
     "user": os.getenv("SNOWFLAKE_USER"),
     "password": os.getenv("SNOWFLAKE_PASSWORD"),
     "warehouse": os.getenv("SNOWFLAKE_WAREHOUSE", "COMPUTE_WH"),
     "database": os.getenv("SNOWFLAKE_DATABASE", "NETFLIX_ANALYTICS"),
-    "schema": os.getenv("SNOWFLAKE_SCHEMA", "PUBLIC"),
+    "schema": os.getenv("SNOWFLAKE_SCHEMA", "MARTS_MARTS"),
     "role": os.getenv("SNOWFLAKE_ROLE", "ACCOUNTADMIN"),
 }
 

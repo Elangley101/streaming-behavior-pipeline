@@ -1,0 +1,42 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw data from the Netflix streaming pipeline"
+    schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'MARTS') }}"
+    tables:
+      - name: user_watch_sessions
+        description: "Raw user watch session data from Kafka stream"
+        columns:
+          - name: user_id
+            description: "Unique identifier for the user"
+            tests:
+              - not_null
+              - unique
+          - name: show_name
+            description: "Name of the show being watched"
+            tests:
+              - not_null
+          - name: watch_duration_minutes
+            description: "Duration of the watch session in minutes"
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  max_value: 1440  # 24 hours max
+          - name: watch_date
+            description: "Timestamp when the watch session occurred"
+            tests:
+              - not_null
+          - name: engagement_score
+            description: "User engagement score for the session"
+            tests:
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  max_value: 100
+          - name: completion_rate
+            description: "Percentage of the show completed"
+            tests:
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  max_value: 100 

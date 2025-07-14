@@ -55,7 +55,7 @@ data/processed/*.parquet
 *.parquet
 
 # Environment variables
-.env
+# .env - Removed to allow configuration
 .env.local
 .env.production
 
@@ -108,6 +108,13 @@ coverage.xml
 *.rar
 
 # Environment variables
-.env
+.env 
 .env.local
 .env.*.local 
+
+# Ignore environment and secrets files
+.env
+*.env
+.env.*
+# Add any other sensitive files here 
+archive/
