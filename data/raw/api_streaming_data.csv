@@ -1,0 +1,101 @@
+user_id,platform,content_type,genre,watch_duration_minutes,watch_date,completion_rate,is_binge_session,engagement_score
+user_0972,Amazon Prime,Documentary,Drama,128,2025-06-21 14:31:17,1.0,False,0.94
+user_0902,HBO Max,Movie,Romance,143,2025-06-15 23:32:17,1.0,False,0.58
+user_0871,Peacock,Reality TV,Action,206,2025-07-02 17:15:17,1.0,True,0.15
+user_0108,HBO Max,Stand-up Comedy,Drama,96,2025-06-13 11:35:17,1.0,False,0.96
+user_0923,Netflix,Reality TV,Sci-Fi,103,2025-06-18 06:08:17,1.0,False,0.67
+user_0468,Hulu,Movie,Comedy,185,2025-06-23 02:21:17,1.0,True,0.98
+user_0088,Disney+,TV Show,Horror,211,2025-07-01 07:02:17,1.0,True,0.97
+user_0714,HBO Max,TV Show,Comedy,221,2025-06-20 12:24:17,1.0,True,0.72
+user_0383,Netflix,Movie,Horror,101,2025-06-15 04:09:17,1.0,False,0.29
+user_0501,Hulu,Documentary,Sci-Fi,152,2025-06-10 05:11:17,1.0,False,0.48
+user_0338,Amazon Prime,TV Show,Romance,54,2025-06-30 11:44:17,0.9,False,0.33
+user_0833,HBO Max,Movie,Horror,198,2025-06-26 13:06:17,1.0,True,0.26
+user_0376,Disney+,Movie,Documentary,112,2025-07-03 13:10:17,1.0,False,0.53
+user_0148,Netflix,Documentary,Action,48,2025-06-27 13:46:17,0.8,False,0.61
+user_0739,HBO Max,Stand-up Comedy,Drama,112,2025-06-07 02:13:17,1.0,False,0.52
+user_0534,Amazon Prime,Movie,Action,125,2025-06-30 08:38:17,1.0,False,0.78
+user_0472,HBO Max,Documentary,Action,188,2025-06-19 15:02:17,1.0,True,0.98
+user_0432,Peacock,Stand-up Comedy,Thriller,172,2025-06-06 17:13:17,1.0,False,0.71
+user_0427,Hulu,TV Show,Action,141,2025-07-06 15:31:17,1.0,False,1.0
+user_0707,Peacock,TV Show,Romance,98,2025-06-08 15:57:17,1.0,False,0.18
+user_0587,HBO Max,Movie,Thriller,211,2025-06-16 02:57:17,1.0,True,0.37
+user_0751,HBO Max,TV Show,Action,130,2025-06-18 09:05:17,1.0,False,0.81
+user_0894,Peacock,Reality TV,Sci-Fi,213,2025-06-19 18:42:17,1.0,True,1.0
+user_0950,Netflix,Reality TV,Documentary,148,2025-06-29 08:57:17,1.0,False,0.25
+user_0114,Peacock,Documentary,Documentary,24,2025-07-01 05:46:17,0.4,False,0.8
+user_0119,HBO Max,Documentary,Comedy,169,2025-06-07 04:19:17,1.0,False,0.87
+user_0484,Amazon Prime,Stand-up Comedy,Romance,157,2025-06-13 15:36:17,1.0,False,0.64
+user_0441,Netflix,Stand-up Comedy,Romance,59,2025-06-10 15:49:17,0.98,False,0.35
+user_0985,HBO Max,Reality TV,Drama,113,2025-06-27 18:32:17,1.0,False,0.82
+user_0539,Netflix,Reality TV,Romance,42,2025-07-05 13:25:17,0.7,False,0.51
+user_0380,Amazon Prime,TV Show,Drama,175,2025-06-07 22:12:17,1.0,False,0.65
+user_0913,Amazon Prime,Documentary,Romance,46,2025-06-10 15:02:17,0.77,False,0.55
+user_0253,Netflix,Movie,Romance,64,2025-06-16 06:51:17,1.0,False,0.5
+user_0943,Peacock,Reality TV,Horror,201,2025-06-29 09:59:17,1.0,True,0.43
+user_0058,Amazon Prime,Reality TV,Sci-Fi,33,2025-06-08 08:30:17,0.55,False,0.19
+user_0371,Disney+,Movie,Horror,101,2025-06-29 04:01:17,1.0,False,0.79
+user_0460,HBO Max,Movie,Horror,109,2025-06-29 07:13:17,1.0,False,0.44
+user_0950,HBO Max,Stand-up Comedy,Thriller,203,2025-07-06 07:04:17,1.0,True,0.69
+user_0926,Netflix,Documentary,Romance,48,2025-06-14 13:08:17,0.8,False,0.89
+user_0013,HBO Max,Documentary,Documentary,211,2025-07-03 00:33:17,1.0,True,0.68
+user_0022,Amazon Prime,TV Show,Action,106,2025-06-29 13:38:17,1.0,False,0.75
+user_0038,Netflix,Reality TV,Drama,193,2025-07-07 08:35:17,1.0,True,0.67
+user_0976,Amazon Prime,Stand-up Comedy,Action,114,2025-06-26 05:59:17,1.0,False,0.46
+user_0605,Amazon Prime,Movie,Romance,175,2025-06-26 04:04:17,1.0,False,0.4
+user_0043,Hulu,Stand-up Comedy,Drama,108,2025-06-13 16:22:17,1.0,False,0.32
+user_0356,Netflix,TV Show,Comedy,18,2025-06-21 18:05:17,0.3,False,0.24
+user_0129,Peacock,TV Show,Drama,226,2025-06-13 11:57:17,1.0,True,0.52
+user_0247,HBO Max,Stand-up Comedy,Action,86,2025-06-17 00:25:17,1.0,False,0.8
+user_0644,Netflix,Movie,Sci-Fi,66,2025-06-08 06:00:17,1.0,False,0.63
+user_0283,Disney+,Documentary,Horror,165,2025-06-24 17:54:17,1.0,False,0.96
+user_0373,Amazon Prime,Movie,Horror,52,2025-06-08 02:39:17,0.87,False,0.57
+user_0657,Amazon Prime,Stand-up Comedy,Comedy,59,2025-06-20 16:53:17,0.98,False,0.16
+user_0876,Hulu,Stand-up Comedy,Documentary,190,2025-06-19 06:43:17,1.0,True,0.74
+user_0939,Hulu,Movie,Thriller,50,2025-06-16 03:07:17,0.83,False,0.53
+user_0710,Amazon Prime,Movie,Documentary,40,2025-06-24 14:12:17,0.67,False,0.52
+user_0361,HBO Max,Reality TV,Horror,56,2025-06-08 11:44:17,0.93,False,0.43
+user_0445,Netflix,TV Show,Horror,228,2025-06-21 05:27:17,1.0,True,0.92
+user_0872,Netflix,Stand-up Comedy,Romance,117,2025-06-14 02:21:17,1.0,False,0.44
+user_0734,Peacock,TV Show,Action,220,2025-06-22 00:29:17,1.0,True,0.91
+user_0498,Disney+,Documentary,Thriller,111,2025-06-12 05:36:17,1.0,False,0.63
+user_0741,HBO Max,Movie,Horror,186,2025-06-20 13:06:17,1.0,True,0.31
+user_0344,Hulu,Reality TV,Drama,114,2025-07-04 06:40:17,1.0,False,0.31
+user_0420,Amazon Prime,Documentary,Thriller,28,2025-07-07 12:11:17,0.47,False,0.45
+user_0069,Disney+,Reality TV,Documentary,87,2025-07-02 03:36:17,1.0,False,0.69
+user_0234,Hulu,Reality TV,Sci-Fi,79,2025-06-22 13:53:17,1.0,False,0.52
+user_0427,HBO Max,Stand-up Comedy,Documentary,148,2025-06-08 03:46:17,1.0,False,0.36
+user_0763,Disney+,Documentary,Comedy,239,2025-07-02 03:41:17,1.0,True,0.98
+user_0279,Amazon Prime,TV Show,Thriller,86,2025-06-19 09:40:17,1.0,False,0.67
+user_0326,Amazon Prime,Stand-up Comedy,Thriller,152,2025-06-16 20:09:17,1.0,False,0.75
+user_0628,Netflix,Documentary,Comedy,185,2025-06-30 03:58:17,1.0,True,0.99
+user_0283,Hulu,TV Show,Horror,108,2025-07-01 08:18:17,1.0,False,0.57
+user_0396,Netflix,Documentary,Sci-Fi,209,2025-06-25 14:38:17,1.0,True,0.51
+user_0653,HBO Max,Stand-up Comedy,Drama,204,2025-07-01 16:25:17,1.0,True,0.23
+user_0909,Disney+,Movie,Drama,139,2025-06-15 16:04:17,1.0,False,0.74
+user_0461,Disney+,Movie,Thriller,203,2025-06-26 14:37:17,1.0,True,0.84
+user_0159,Amazon Prime,TV Show,Comedy,88,2025-06-17 01:47:17,1.0,False,0.66
+user_0001,Netflix,TV Show,Drama,224,2025-06-25 12:57:17,1.0,True,0.96
+user_0744,Disney+,Movie,Sci-Fi,69,2025-06-10 04:22:17,1.0,False,0.82
+user_0653,Amazon Prime,Movie,Comedy,222,2025-07-04 08:34:17,1.0,True,0.4
+user_0007,Hulu,TV Show,Documentary,42,2025-06-08 02:43:17,0.7,False,0.69
+user_0554,Disney+,Stand-up Comedy,Documentary,77,2025-06-12 16:37:17,1.0,False,0.17
+user_0808,Netflix,Documentary,Thriller,175,2025-06-24 03:36:17,1.0,False,0.84
+user_0825,Disney+,Stand-up Comedy,Romance,139,2025-06-08 16:19:17,1.0,False,0.35
+user_0098,Netflix,Movie,Thriller,155,2025-06-12 06:55:17,1.0,False,0.52
+user_0034,Amazon Prime,Movie,Documentary,149,2025-06-09 05:33:17,1.0,False,0.39
+user_0915,HBO Max,Movie,Horror,126,2025-06-23 17:45:17,1.0,False,0.5
+user_0868,Amazon Prime,Reality TV,Horror,143,2025-06-07 10:21:17,1.0,False,0.1
+user_0001,Disney+,Stand-up Comedy,Comedy,59,2025-06-16 07:00:17,0.98,False,0.39
+user_0451,Amazon Prime,Reality TV,Drama,89,2025-07-05 23:26:17,1.0,False,0.46
+user_0499,Hulu,Documentary,Drama,104,2025-06-30 11:58:17,1.0,False,0.36
+user_0390,Hulu,Documentary,Thriller,73,2025-07-07 16:36:17,1.0,False,0.35
+user_0343,Hulu,TV Show,Documentary,172,2025-06-23 06:23:17,1.0,False,0.59
+user_0931,Amazon Prime,Documentary,Horror,48,2025-07-06 13:42:17,0.8,False,0.59
+user_0694,Hulu,Movie,Documentary,165,2025-06-21 06:39:17,1.0,False,0.91
+user_0237,Disney+,TV Show,Romance,101,2025-07-06 12:29:17,1.0,False,0.84
+user_0844,Peacock,Documentary,Sci-Fi,60,2025-07-05 04:38:17,1.0,False,0.64
+user_0869,Hulu,Reality TV,Thriller,83,2025-06-27 16:23:17,1.0,False,0.62
+user_0171,HBO Max,TV Show,Sci-Fi,152,2025-06-27 16:00:17,1.0,False,0.68
+user_0689,Peacock,Reality TV,Drama,106,2025-06-20 05:56:17,1.0,False,0.57
+user_0216,Disney+,Reality TV,Action,81,2025-06-18 01:01:17,1.0,False,0.23
