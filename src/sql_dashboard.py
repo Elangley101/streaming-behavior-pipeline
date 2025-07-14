@@ -61,20 +61,32 @@ class NetflixSQLDashboard:
 
         with col1:
             if st.button("🎬 Main", key="nav_main", help="Main analytics dashboard"):
-                st.markdown(
-                    f'<meta http-equiv="refresh" content="0;url=http://localhost:8501">',
-                    unsafe_allow_html=True,
-                )
+                # Use JavaScript to get current host and redirect
+                st.markdown("""
+                <script>
+                var currentHost = window.location.hostname;
+                var currentPort = window.location.port;
+                var mainPort = parseInt(currentPort) - 1;
+                var mainUrl = 'http://' + currentHost + ':' + mainPort;
+                window.location.href = mainUrl;
+                </script>
+                """, unsafe_allow_html=True)
                 st.success("Redirecting to Main Dashboard...")
 
         with col2:
             if st.button(
                 "🔍 Quality", key="nav_quality", help="Data quality monitoring"
             ):
-                st.markdown(
-                    f'<meta http-equiv="refresh" content="0;url=http://localhost:8503">',
-                    unsafe_allow_html=True,
-                )
+                # Use JavaScript to get current host and redirect
+                st.markdown("""
+                <script>
+                var currentHost = window.location.hostname;
+                var currentPort = window.location.port;
+                var qualityPort = parseInt(currentPort) + 1;
+                var qualityUrl = 'http://' + currentHost + ':' + qualityPort;
+                window.location.href = qualityUrl;
+                </script>
+                """, unsafe_allow_html=True)
                 st.success("Redirecting to Data Quality Dashboard...")
 
         st.sidebar.markdown("---")

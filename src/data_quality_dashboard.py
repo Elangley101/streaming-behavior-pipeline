@@ -191,18 +191,30 @@ class DataQualityDashboard:
 
         with col1:
             if st.button("🎬 Main", key="nav_main", help="Main analytics dashboard"):
-                st.markdown(
-                    f'<meta http-equiv="refresh" content="0;url=http://localhost:8501">',
-                    unsafe_allow_html=True,
-                )
+                # Use JavaScript to get current host and redirect
+                st.markdown("""
+                <script>
+                var currentHost = window.location.hostname;
+                var currentPort = window.location.port;
+                var mainPort = parseInt(currentPort) - 2;
+                var mainUrl = 'http://' + currentHost + ':' + mainPort;
+                window.location.href = mainUrl;
+                </script>
+                """, unsafe_allow_html=True)
                 st.success("Redirecting to Main Dashboard...")
 
         with col2:
             if st.button("📊 SQL", key="nav_sql", help="SQL-powered analytics"):
-                st.markdown(
-                    f'<meta http-equiv="refresh" content="0;url=http://localhost:8502">',
-                    unsafe_allow_html=True,
-                )
+                # Use JavaScript to get current host and redirect
+                st.markdown("""
+                <script>
+                var currentHost = window.location.hostname;
+                var currentPort = window.location.port;
+                var sqlPort = parseInt(currentPort) - 1;
+                var sqlUrl = 'http://' + currentHost + ':' + sqlPort;
+                window.location.href = sqlUrl;
+                </script>
+                """, unsafe_allow_html=True)
                 st.success("Redirecting to SQL Dashboard...")
 
         st.sidebar.markdown("---")
