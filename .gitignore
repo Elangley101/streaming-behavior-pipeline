@@ -48,11 +48,7 @@ Thumbs.db
 logs/
 *.log
 
-# Data files
-data/raw/*.csv
-data/processed/*.parquet
-*.csv
-*.parquet
+
 
 # Environment variables
 # .env - Removed to allow configuration
@@ -86,7 +82,7 @@ coverage.xml
 *.rar
 
 # Project specific
-data/
+
 logs/
 *.log
 *.parquet
