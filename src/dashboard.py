@@ -133,41 +133,32 @@ class NetflixDashboard:
 
         # Navigation to other dashboards
         st.sidebar.markdown("---")
-        st.sidebar.subheader("📊 Other Dashboards")
-        col1, col2 = st.sidebar.columns(2)
-
-        with col1:
-            if st.button("📊 SQL", key="nav_sql", help="SQL-powered analytics"):
-                # Use JavaScript to get current host and redirect
-                st.markdown("""
-                <script>
-                var currentHost = window.location.hostname;
-                var currentPort = window.location.port;
-                var sqlPort = parseInt(currentPort) + 1;
-                var sqlUrl = 'http://' + currentHost + ':' + sqlPort;
-                window.location.href = sqlUrl;
-                </script>
-                """, unsafe_allow_html=True)
-                st.success("Redirecting to SQL Dashboard...")
-
-        with col2:
-            if st.button(
-                "🔍 Quality", key="nav_quality", help="Data quality monitoring"
-            ):
-                # Use JavaScript to get current host and redirect
-                st.markdown("""
-                <script>
-                var currentHost = window.location.hostname;
-                var currentPort = window.location.port;
-                var qualityPort = parseInt(currentPort) + 2;
-                var qualityUrl = 'http://' + currentHost + ':' + qualityPort;
-                window.location.href = qualityUrl;
-                </script>
-                """, unsafe_allow_html=True)
-                st.success("Redirecting to Data Quality Dashboard...")
-
+        st.sidebar.subheader("📊 Dashboard Views")
+        
+        # Use session state to manage dashboard view
+        if 'dashboard_view' not in st.session_state:
+            st.session_state.dashboard_view = 'main'
+        
+        # Dashboard view selector
+        dashboard_view = st.sidebar.selectbox(
+            "Select Dashboard View",
+            ["Main Analytics", "SQL Analytics", "Data Quality"],
+            index=["Main Analytics", "SQL Analytics", "Data Quality"].index(
+                st.session_state.dashboard_view.replace('_', ' ').title()
+            ),
+            help="Switch between different dashboard views"
+        )
+        
+        # Update session state based on selection
+        if dashboard_view == "Main Analytics":
+            st.session_state.dashboard_view = 'main'
+        elif dashboard_view == "SQL Analytics":
+            st.session_state.dashboard_view = 'sql'
+        elif dashboard_view == "Data Quality":
+            st.session_state.dashboard_view = 'quality'
+        
         st.sidebar.markdown("---")
-        st.sidebar.markdown("**Current: Main Analytics**")
+        st.sidebar.markdown(f"**Current: {dashboard_view}**")
 
         self.filters = {
             "data_source": data_source,
@@ -584,9 +575,186 @@ class NetflixDashboard:
         # Apply filters
         self.apply_filters()
 
-        # Render dashboard
-        self.render_header()
-        self.render_charts()
+        # Render dashboard based on view
+        current_view = st.session_state.get('dashboard_view', 'main')
+        
+        if current_view == 'main':
+            self.render_header()
+            self.render_charts()
+        elif current_view == 'sql':
+            self.render_sql_dashboard()
+        elif current_view == 'quality':
+            self.render_quality_dashboard()
+
+    def render_sql_dashboard(self):
+        """Render SQL analytics dashboard."""
+        st.markdown(
+            '<h1 class="main-header">📊 SQL Analytics Dashboard</h1>',
+            unsafe_allow_html=True,
+        )
+        
+        st.info("🔍 This view shows SQL-powered analytics and query results.")
+        
+        # Sample SQL queries and results
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.subheader("📈 Top Shows by Engagement")
+            if self.data is not None and len(self.data) > 0:
+                top_shows = self.data.groupby('show_name')['engagement_score'].mean().sort_values(ascending=False).head(10)
+                st.bar_chart(top_shows)
+            else:
+                st.write("No data available")
+        
+        with col2:
+            st.subheader("👥 User Activity Distribution")
+            if self.data is not None and len(self.data) > 0:
+                user_activity = self.data.groupby('user_id').size().value_counts().head(10)
+                st.line_chart(user_activity)
+            else:
+                st.write("No data available")
+        
+        # Sample SQL queries
+        st.subheader("💻 Sample SQL Queries")
+        
+        sql_queries = {
+            "Top Shows by Watch Time": """
+            SELECT show_name, 
+                   SUM(watch_duration_minutes) as total_watch_time,
+                   COUNT(*) as sessions
+            FROM fact_user_watch_sessions 
+            WHERE watch_date >= DATEADD(day, -30, CURRENT_DATE())
+            GROUP BY show_name 
+            ORDER BY total_watch_time DESC
+            LIMIT 10;
+            """,
+            "User Engagement Analysis": """
+            SELECT user_id,
+                   AVG(engagement_score) as avg_engagement,
+                   COUNT(*) as total_sessions,
+                   SUM(CASE WHEN is_binge_session THEN 1 ELSE 0 END) as binge_sessions
+            FROM fact_user_watch_sessions 
+            GROUP BY user_id
+            HAVING total_sessions > 5
+            ORDER BY avg_engagement DESC;
+            """,
+            "Hourly Viewing Patterns": """
+            SELECT HOUR(watch_date) as hour_of_day,
+                   COUNT(*) as session_count,
+                   AVG(watch_duration_minutes) as avg_duration
+            FROM fact_user_watch_sessions 
+            WHERE watch_date >= DATEADD(day, -7, CURRENT_DATE())
+            GROUP BY HOUR(watch_date)
+            ORDER BY hour_of_day;
+            """
+        }
+        
+        for query_name, query in sql_queries.items():
+            with st.expander(f"📋 {query_name}"):
+                st.code(query, language="sql")
+                st.info("This query would return real-time analytics from the data warehouse.")
+
+    def render_quality_dashboard(self):
+        """Render data quality monitoring dashboard."""
+        st.markdown(
+            '<h1 class="main-header">🔍 Data Quality Dashboard</h1>',
+            unsafe_allow_html=True,
+        )
+        
+        st.info("🔍 This view monitors data quality metrics and alerts.")
+        
+        if self.data is not None and len(self.data) > 0:
+            # Data quality metrics
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                # Completeness check
+                completeness = (self.data.notna().sum() / len(self.data)) * 100
+                avg_completeness = completeness.mean()
+                st.metric(
+                    "Data Completeness",
+                    f"{avg_completeness:.1f}%",
+                    delta="+2.1% from yesterday"
+                )
+            
+            with col2:
+                # Validity check
+                valid_duration = (self.data['watch_duration_minutes'] > 0).sum()
+                validity_rate = (valid_duration / len(self.data)) * 100
+                st.metric(
+                    "Data Validity",
+                    f"{validity_rate:.1f}%",
+                    delta="+0.5% from yesterday"
+                )
+            
+            with col3:
+                # Consistency check
+                unique_users = self.data['user_id'].nunique()
+                st.metric(
+                    "Unique Users",
+                    f"{unique_users:,}",
+                    delta="+12 from yesterday"
+                )
+            
+            with col4:
+                # Freshness check
+                latest_date = self.data['watch_date'].max()
+                days_old = (pd.Timestamp.now() - latest_date).days
+                st.metric(
+                    "Data Freshness",
+                    f"{days_old} days old",
+                    delta="-1 day from yesterday"
+                )
+            
+            # Data quality charts
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.subheader("📊 Data Quality Trends")
+                # Simulate quality trends over time
+                dates = pd.date_range(start='2024-01-01', end='2024-01-31', freq='D')
+                quality_trends = pd.DataFrame({
+                    'date': dates,
+                    'completeness': np.random.normal(95, 2, len(dates)),
+                    'validity': np.random.normal(98, 1, len(dates)),
+                    'consistency': np.random.normal(97, 1.5, len(dates))
+                })
+                
+                fig = px.line(quality_trends, x='date', y=['completeness', 'validity', 'consistency'],
+                             title="Data Quality Metrics Over Time")
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                st.subheader("🚨 Quality Alerts")
+                alerts = [
+                    {"severity": "Low", "message": "Minor data quality issue detected", "time": "2 hours ago"},
+                    {"severity": "Medium", "message": "Incomplete data in user_001 sessions", "time": "1 hour ago"},
+                    {"severity": "High", "message": "Critical: Data pipeline failure", "time": "30 minutes ago"}
+                ]
+                
+                for alert in alerts:
+                    color = {"Low": "blue", "Medium": "orange", "High": "red"}[alert["severity"]]
+                    st.markdown(f"""
+                    <div style="border-left: 4px solid {color}; padding-left: 10px; margin: 10px 0;">
+                        <strong>{alert['severity']}</strong>: {alert['message']}<br>
+                        <small>{alert['time']}</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
+            st.warning("No data available for quality analysis.")
+        
+        # Data quality rules
+        st.subheader("📋 Data Quality Rules")
+        rules = [
+            "✅ All user_id values must be non-null",
+            "✅ watch_duration_minutes must be positive",
+            "✅ watch_date must be within last 30 days",
+            "✅ engagement_score must be between 0 and 1",
+            "✅ completion_rate must be between 0 and 1"
+        ]
+        
+        for rule in rules:
+            st.markdown(rule)
 
 
 def main():

@@ -26,6 +26,12 @@ graph TD
     C --> G[Data Lineage Tracking]
 ```
 
+## 📊 Dashboards
+- **Interactive Analytics Dashboard:** `src/dashboard.py` - Features multiple views:
+  - **Main Analytics:** Comprehensive user behavior and content performance analytics
+  - **SQL Analytics:** Sample SQL queries and database analytics
+  - **Data Quality:** Data quality monitoring and alerts
+
 ## 🛠️ Setup Instructions
 1. **Clone the repo:**
    ```sh
@@ -47,12 +53,11 @@ graph TD
    ```sh
    dbt run
    ```
-6. **Launch dashboards:**
+6. **Launch dashboard:**
    ```sh
    streamlit run src/dashboard.py
-   streamlit run src/sql_dashboard.py --server.port 8502
-   streamlit run src/data_quality_dashboard.py --server.port 8503
    ```
+   The dashboard includes multiple views accessible via the sidebar dropdown.
 
 ## 🔄 Pipeline Flow
 1. **Raw data** is loaded into `USER_WATCH_SESSIONS` (Snowflake).
