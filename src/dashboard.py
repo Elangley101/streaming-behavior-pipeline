@@ -137,25 +137,24 @@ class NetflixDashboard:
         
         # Use session state to manage dashboard view
         if 'dashboard_view' not in st.session_state:
-            st.session_state.dashboard_view = 'main'
+            st.session_state.dashboard_view = 'Main Analytics'
         
         # Dashboard view selector
         dashboard_view = st.sidebar.selectbox(
             "Select Dashboard View",
             ["Main Analytics", "SQL Analytics", "Data Quality"],
             index=["Main Analytics", "SQL Analytics", "Data Quality"].index(
-                st.session_state.dashboard_view.replace('_', ' ').title()
+                st.session_state.dashboard_view
             ),
+            key="dashboard_view_selector",
             help="Switch between different dashboard views"
         )
         
         # Update session state based on selection
-        if dashboard_view == "Main Analytics":
-            st.session_state.dashboard_view = 'main'
-        elif dashboard_view == "SQL Analytics":
-            st.session_state.dashboard_view = 'sql'
-        elif dashboard_view == "Data Quality":
-            st.session_state.dashboard_view = 'quality'
+        st.session_state.dashboard_view = dashboard_view
+        
+        # Debug info (remove in production)
+        st.sidebar.markdown(f"**Debug: {st.session_state.dashboard_view}**")
         
         st.sidebar.markdown("---")
         st.sidebar.markdown(f"**Current: {dashboard_view}**")
@@ -576,15 +575,22 @@ class NetflixDashboard:
         self.apply_filters()
 
         # Render dashboard based on view
-        current_view = st.session_state.get('dashboard_view', 'main')
+        current_view = st.session_state.get('dashboard_view', 'Main Analytics')
         
-        if current_view == 'main':
+        # Debug info (remove in production)
+        st.sidebar.markdown(f"**Selected View: {current_view}**")
+        
+        if current_view == 'Main Analytics':
             self.render_header()
             self.render_charts()
-        elif current_view == 'sql':
+        elif current_view == 'SQL Analytics':
             self.render_sql_dashboard()
-        elif current_view == 'quality':
+        elif current_view == 'Data Quality':
             self.render_quality_dashboard()
+        else:
+            st.error(f"Unknown view: {current_view}")
+            self.render_header()
+            self.render_charts()
 
     def render_sql_dashboard(self):
         """Render SQL analytics dashboard."""
