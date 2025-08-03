@@ -135,26 +135,29 @@ class NetflixDashboard:
         st.sidebar.markdown("---")
         st.sidebar.subheader("📊 Dashboard Views")
         
-        # Use session state to manage dashboard view
-        if 'dashboard_view' not in st.session_state:
-            st.session_state.dashboard_view = 'Main Analytics'
+        # Linux EC2 specific reset button
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("🔄 Reset", key="reset_nav_linux"):
+                # Clear all session state for Linux
+                for key in list(st.session_state.keys()):
+                    del st.session_state[key]
+                st.session_state.dashboard_navigation = 'Main Analytics'
+                st.session_state._initialized = True
+                st.rerun()
         
-        # Dashboard view selector
-        dashboard_view = st.sidebar.selectbox(
+        with col2:
+            if st.button("🔄 Force Rerun", key="force_rerun"):
+                st.rerun()
+        
+        # Use radio buttons for more reliable navigation
+        dashboard_view = st.sidebar.radio(
             "Select Dashboard View",
             ["Main Analytics", "SQL Analytics", "Data Quality"],
-            index=["Main Analytics", "SQL Analytics", "Data Quality"].index(
-                st.session_state.dashboard_view
-            ),
-            key="dashboard_view_selector",
+            index=0,
+            key="dashboard_navigation",
             help="Switch between different dashboard views"
         )
-        
-        # Update session state based on selection
-        st.session_state.dashboard_view = dashboard_view
-        
-        # Debug info (remove in production)
-        st.sidebar.markdown(f"**Debug: {st.session_state.dashboard_view}**")
         
         st.sidebar.markdown("---")
         st.sidebar.markdown(f"**Current: {dashboard_view}**")
@@ -574,12 +577,33 @@ class NetflixDashboard:
         # Apply filters
         self.apply_filters()
 
-        # Render dashboard based on view
-        current_view = st.session_state.get('dashboard_view', 'Main Analytics')
+        # Linux EC2 specific session state handling
+        try:
+            # Force session state initialization for Linux
+            if 'dashboard_navigation' not in st.session_state:
+                st.session_state.dashboard_navigation = 'Main Analytics'
+                st.session_state._initialized = True
+            
+            # Get current view with fallback
+            current_view = st.session_state.get('dashboard_navigation', 'Main Analytics')
+            
+            # Linux-specific debug info
+            st.sidebar.markdown("---")
+            st.sidebar.markdown("**🔧 Linux EC2 Debug**")
+            st.sidebar.markdown(f"Current View: {current_view}")
+            st.sidebar.markdown(f"Session Keys: {list(st.session_state.keys())}")
+            st.sidebar.markdown(f"Session ID: {id(st.session_state)}")
+            
+            # Force rerun if session state is corrupted
+            if not hasattr(st.session_state, '_initialized'):
+                st.session_state._initialized = True
+                st.rerun()
+                
+        except Exception as e:
+            st.sidebar.error(f"Session Error: {str(e)}")
+            current_view = 'Main Analytics'
         
-        # Debug info (remove in production)
-        st.sidebar.markdown(f"**Selected View: {current_view}**")
-        
+        # Render based on view
         if current_view == 'Main Analytics':
             self.render_header()
             self.render_charts()
