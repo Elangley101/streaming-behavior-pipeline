@@ -135,20 +135,10 @@ class NetflixDashboard:
         st.sidebar.markdown("---")
         st.sidebar.subheader("📊 Dashboard Views")
         
-        # Linux EC2 specific reset button
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("🔄 Reset", key="reset_nav_linux"):
-                # Clear all session state for Linux
-                for key in list(st.session_state.keys()):
-                    del st.session_state[key]
-                st.session_state.dashboard_navigation = 'Main Analytics'
-                st.session_state._initialized = True
-                st.rerun()
-        
-        with col2:
-            if st.button("🔄 Force Rerun", key="force_rerun"):
-                st.rerun()
+        # Simple reset button
+        if st.sidebar.button("🔄 Reset Navigation", key="reset_nav"):
+            st.session_state.dashboard_navigation = 'Main Analytics'
+            st.rerun()
         
         # Use radio buttons for more reliable navigation
         dashboard_view = st.sidebar.radio(
@@ -577,31 +567,12 @@ class NetflixDashboard:
         # Apply filters
         self.apply_filters()
 
-        # Linux EC2 specific session state handling
-        try:
-            # Force session state initialization for Linux
-            if 'dashboard_navigation' not in st.session_state:
-                st.session_state.dashboard_navigation = 'Main Analytics'
-                st.session_state._initialized = True
-            
-            # Get current view with fallback
-            current_view = st.session_state.get('dashboard_navigation', 'Main Analytics')
-            
-            # Linux-specific debug info
-            st.sidebar.markdown("---")
-            st.sidebar.markdown("**🔧 Linux EC2 Debug**")
-            st.sidebar.markdown(f"Current View: {current_view}")
-            st.sidebar.markdown(f"Session Keys: {list(st.session_state.keys())}")
-            st.sidebar.markdown(f"Session ID: {id(st.session_state)}")
-            
-            # Force rerun if session state is corrupted
-            if not hasattr(st.session_state, '_initialized'):
-                st.session_state._initialized = True
-                st.rerun()
-                
-        except Exception as e:
-            st.sidebar.error(f"Session Error: {str(e)}")
-            current_view = 'Main Analytics'
+        # Simple session state handling
+        if 'dashboard_navigation' not in st.session_state:
+            st.session_state.dashboard_navigation = 'Main Analytics'
+        
+        # Get current view
+        current_view = st.session_state.get('dashboard_navigation', 'Main Analytics')
         
         # Render based on view
         if current_view == 'Main Analytics':
